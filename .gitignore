@@ -1,0 +1,11 @@
+External
+main.exe
+./main.exe
+*.exe
+bin
+*.zip
+.vscode
+socketValues.hpp
+build
+*.txt
+debug
