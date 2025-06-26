@@ -89,7 +89,6 @@ void Engine::render()
 
   for (auto &[key, gameObject] : gameObjects)
   {
-    std::cout << key << std::endl;
     renderer.renderQueue.push_back(makeGameObjectCommand(gameObject, &renderer, renderer.getCurrentFrame(), view, proj));
   }
 
