@@ -6,6 +6,7 @@ enum BlockType
   Air,
   Grass_Dirt,
   Dirt,
+  Stone,
   Water,
   Sand
 };

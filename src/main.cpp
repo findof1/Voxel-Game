@@ -55,8 +55,24 @@ int main()
 
                 engine.createGameObject("couch", glm::vec3(30, 30, 0), glm::vec3(45, 45, 45), glm::vec3(0.1f, 0.1f, 0.1f));
                 engine.loadModel("couch", "models/couch/couch1.obj", "models/couch/couch1.mtl");*/
-
+        world.loadChunk(glm::ivec3(0, 0, 0));
+        world.loadChunk(glm::ivec3(16, 0, 0));
+        world.loadChunk(glm::ivec3(0, 0, 16));
+        world.loadChunk(glm::ivec3(16, 0, 16));
+        world.loadChunk(glm::ivec3(32, 0, 0));
+        world.loadChunk(glm::ivec3(32, 0, 16));
+        world.loadChunk(glm::ivec3(16, 0, 32));
+        world.loadChunk(glm::ivec3(0, 0, 32));
+        world.loadChunk(glm::ivec3(32, 0, 32));
         world.renderChunk(&engine, "chunk1", glm::ivec3(0, 0, 0));
+        world.renderChunk(&engine, "chunk2", glm::ivec3(16, 0, 0));
+        world.renderChunk(&engine, "chunk3", glm::ivec3(0, 0, 16));
+        world.renderChunk(&engine, "chunk4", glm::ivec3(16, 0, 16));
+        world.renderChunk(&engine, "chunk5", glm::ivec3(32, 0, 0));
+        world.renderChunk(&engine, "chunk6", glm::ivec3(32, 0, 16));
+        world.renderChunk(&engine, "chunk7", glm::ivec3(16, 0, 32));
+        world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
+        world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));
 
         engine.run();
         engine.shutdown();

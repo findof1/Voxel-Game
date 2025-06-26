@@ -12,13 +12,13 @@ public:
   static const int chunkHeight = 100;
   BlockType blocks[chunkSize * chunkSize * chunkHeight];
 
-  glm::vec3 worldPosition;
+  glm::ivec3 worldPosition;
   bool modifiedChunk = true;
   ChunkData(const ChunkData &other) = default;
   ChunkData(ChunkData &&other) noexcept = default;
   ChunkData &operator=(const ChunkData &other) = default;
   ChunkData &operator=(ChunkData &&other) noexcept = default;
-  ChunkData(glm::vec3 worldPosition);
+  ChunkData(glm::ivec3 worldPosition);
 
   inline int toIndex(int x, int y, int z) const
   {

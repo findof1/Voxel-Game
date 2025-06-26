@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "meshGenerator.hpp"
+#include "blockDataSO.hpp"
 
 struct ChunkHasher
 {
@@ -17,6 +18,9 @@ class World
 {
 public:
   MeshGenerator meshGenerator;
+  BlockDataSO textureDataSource;
+  World();
+
   BlockType getBlock(int x, int y, int z) const;
 
   void setBlock(int x, int y, int z, BlockType type);
