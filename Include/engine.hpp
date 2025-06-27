@@ -63,9 +63,9 @@ public:
   }
 
   void createGameObject(std::string identifier, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+  void removeGameObject(std::string identifier);
   void addMeshToObject(std::string identifier, MaterialData material, const std::string &texturePath, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
   void loadModel(std::string identifier, const std::string objPath, const std::string mtlPath);
-  void removeGameObject(std::string identifier);
 
   void disableCursor();
   void enableCursor();

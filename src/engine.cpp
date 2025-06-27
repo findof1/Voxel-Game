@@ -169,6 +169,17 @@ void Engine::createGameObject(std::string identifier, glm::vec3 position, glm::v
   gameObjects.emplace(identifier, std::move(gameObject));
 }
 
+void Engine::removeGameObject(std::string identifier)
+{
+  if (gameObjects.find(identifier) == gameObjects.end())
+  {
+    return;
+  }
+
+  gameObjects.at(identifier).cleanup(renderer);
+  gameObjects.erase(identifier);
+}
+
 void Engine::addMeshToObject(std::string identifier, MaterialData material, const std::string &texturePath, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices)
 {
   auto it = gameObjects.find(identifier);
@@ -320,19 +331,4 @@ void Engine::loadModel(std::string identifier, const std::string objPath, const 
     }
     gameObject.meshes.push_back(std::move(mesh));
   }
-}
-
-void Engine::removeGameObject(std::string identifier)
-{
-  auto it = gameObjects.find(identifier);
-  if (it == gameObjects.end())
-  {
-    return;
-  }
-  for (auto &mesh : it->second.meshes)
-  {
-    mesh.cleanup(renderer.deviceManager.device, renderer);
-  }
-
-  gameObjects.erase(identifier);
 }

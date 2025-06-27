@@ -4,6 +4,8 @@
 #include <memory>
 #include "meshGenerator.hpp"
 #include "blockDataSO.hpp"
+#include "MutlithreadingQueue.hpp"
+#include <thread>
 
 struct ChunkHasher
 {
@@ -19,6 +21,7 @@ class World
 public:
   MeshGenerator meshGenerator;
   BlockDataSO textureDataSource;
+  std::unordered_map<glm::ivec3, std::unique_ptr<ChunkData>, ChunkHasher> chunks;
   World();
 
   BlockType getBlock(int x, int y, int z) const;
@@ -39,6 +42,50 @@ public:
 
   void generateChunk(const glm::ivec3 &chunkPos);
 
-private:
-  std::unordered_map<glm::ivec3, std::unique_ptr<ChunkData>, ChunkHasher> chunks;
+  ChunkQueue chunkLoadQueue;
+  CompletedQueue completedMeshes;
+  std::atomic<bool> running = true;
+  std::mutex chunkMutex;
+
+  void chunkWorker()
+  {
+    while (running)
+    {
+      glm::ivec3 pos;
+      if (chunkLoadQueue.pop(pos))
+      {
+        loadChunk(pos);
+
+        bool needsMeshing = false;
+        {
+          std::lock_guard<std::mutex> lock(chunkMutex);
+          needsMeshing = chunks.find(pos) != chunks.end() && chunks.at(pos)->modifiedChunk;
+        }
+
+        if (needsMeshing)
+        {
+          std::vector<Vertex> vertices;
+          std::vector<uint32_t> indices;
+          meshGenerator.generateMesh(this, textureDataSource, chunks.at(pos));
+          {
+
+            std::lock_guard<std::mutex> lock(chunkMutex);
+            chunks.at(pos)->modifiedChunk = false;
+          }
+
+          completedMeshes.push({pos, std::move(meshGenerator.vertices), std::move(meshGenerator.indices)});
+        }
+      }
+      else
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      }
+    }
+  }
+  void startWorker()
+  {
+    std::thread([this]()
+                { this->chunkWorker(); })
+        .detach();
+  }
 };

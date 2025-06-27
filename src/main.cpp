@@ -20,18 +20,68 @@
 #include "primitives.hpp"
 #include <world.hpp>
 
+#include <chrono>
+
 void start(Engine *engine)
 {
 }
 
+World world;
+int ident = 0;
+
 void update(Engine *engine, float dt)
 {
+    glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
+    int renderDistance = 6;
+
+    for (int x = -renderDistance; x <= renderDistance; ++x)
+    {
+        for (int z = -renderDistance; z <= renderDistance; ++z)
+        {
+            glm::ivec3 chunkPos = playerChunk + glm::ivec3(x * ChunkData::chunkSize, 0, z * ChunkData::chunkSize);
+
+            if (!world.chunkLoadQueue.has(chunkPos))
+            {
+                world.chunkLoadQueue.push(chunkPos);
+            }
+        }
+    }
+
+    /*
+        for (auto &[chunkPos, chunkPtr] : world.chunks)
+        {
+            if (chunkPtr->modifiedChunk == true)
+            {
+                world.renderChunk(engine, std::to_string(ident), chunkPos);
+                ident++;
+                chunkPtr->modifiedChunk = false;
+            }
+        }
+    */
+
+    CompletedData result;
+    const int maxUploadsPerFrame = 1;
+    int uploads = 0;
+    while (uploads < maxUploadsPerFrame && world.completedMeshes.pop(result))
+    {
+        auto &[chunkPos, vertices, indices] = result;
+
+        engine->createGameObject(std::to_string(ident), chunkPos, glm::vec3(0), glm::vec3(1));
+
+        MaterialData ground;
+        ground.diffuseColor = {0.5, 0.5, 0.5};
+        ground.hasTexture = 1;
+
+        engine->addMeshToObject(std::to_string(ident), ground, "textures/tiles.png", vertices, indices);
+
+        ident++;
+        uploads++;
+    }
 }
 
 int main()
 {
     Engine engine;
-    World world;
     try
     {
         engine.init("Game Engine", start, update);
@@ -55,7 +105,8 @@ int main()
 
                 engine.createGameObject("couch", glm::vec3(30, 30, 0), glm::vec3(45, 45, 45), glm::vec3(0.1f, 0.1f, 0.1f));
                 engine.loadModel("couch", "models/couch/couch1.obj", "models/couch/couch1.mtl");*/
-        world.loadChunk(glm::ivec3(0, 0, 0));
+
+        /*world.loadChunk(glm::ivec3(0, 0, 0));
         world.loadChunk(glm::ivec3(16, 0, 0));
         world.loadChunk(glm::ivec3(0, 0, 16));
         world.loadChunk(glm::ivec3(16, 0, 16));
@@ -72,8 +123,8 @@ int main()
         world.renderChunk(&engine, "chunk6", glm::ivec3(32, 0, 16));
         world.renderChunk(&engine, "chunk7", glm::ivec3(16, 0, 32));
         world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
-        world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));
-
+        world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));*/
+        world.startWorker();
         engine.run();
         engine.shutdown();
     }
