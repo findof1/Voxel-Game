@@ -49,6 +49,7 @@ public:
 
   void chunkWorker()
   {
+    MeshGenerator threadMeshGenerator;
     while (running)
     {
       glm::ivec3 pos;
@@ -66,14 +67,14 @@ public:
         {
           std::vector<Vertex> vertices;
           std::vector<uint32_t> indices;
-          meshGenerator.generateMesh(this, textureDataSource, chunks.at(pos));
+          threadMeshGenerator.generateMesh(this, textureDataSource, chunks.at(pos));
           {
 
             std::lock_guard<std::mutex> lock(chunkMutex);
             chunks.at(pos)->modifiedChunk = false;
           }
 
-          completedMeshes.push({pos, std::move(meshGenerator.vertices), std::move(meshGenerator.indices)});
+          completedMeshes.push({pos, std::move(threadMeshGenerator.vertices), std::move(threadMeshGenerator.indices)});
         }
       }
       else

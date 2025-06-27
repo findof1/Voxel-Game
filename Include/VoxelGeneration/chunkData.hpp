@@ -8,7 +8,7 @@ class World;
 class ChunkData
 {
 public:
-  static const int chunkSize = 16;
+  static const int chunkSize = 64;
   static const int chunkHeight = 100;
   BlockType blocks[chunkSize * chunkSize * chunkHeight];
 
