@@ -47,18 +47,6 @@ void update(Engine *engine, float dt)
         }
     }
 
-    /*
-        for (auto &[chunkPos, chunkPtr] : world.chunks)
-        {
-            if (chunkPtr->modifiedChunk == true)
-            {
-                world.renderChunk(engine, std::to_string(ident), chunkPos);
-                ident++;
-                chunkPtr->modifiedChunk = false;
-            }
-        }
-    */
-
     CompletedData result;
     const int maxUploadsPerFrame = 1;
     int uploads = 0;
@@ -72,7 +60,7 @@ void update(Engine *engine, float dt)
         ground.diffuseColor = {0.5, 0.5, 0.5};
         ground.hasTexture = 1;
 
-        engine->addMeshToObject(std::to_string(ident), ground, "textures/tiles.png", vertices, indices);
+        engine->addVoxelMeshToObject(std::to_string(ident), ground, "textures/tiles.png", vertices, indices);
 
         ident++;
         uploads++;

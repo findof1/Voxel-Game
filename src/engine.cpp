@@ -39,6 +39,13 @@ void Engine::init(std::string windowName, std::function<void(Engine *)> startFn,
   initWindow(windowName);
   renderer.initVulkan();
   // debugDrawer = new VulkanDebugDrawer(renderer, nextRenderingId, true);
+
+  voxelTextureAtlas = std::make_shared<TextureManager>(renderer.bufferManager, renderer);
+  voxelTextureAtlas->createTextureImage("textures/tiles.png", renderer.deviceManager.device, renderer.deviceManager.physicalDevice, renderer.commandPool, renderer.graphicsQueue);
+
+  voxelTextureAtlas->createTextureImageView(renderer.deviceManager.device);
+
+  voxelTextureAtlas->createTextureSampler(renderer.deviceManager.device, renderer.deviceManager.physicalDevice);
 }
 
 void Engine::run()
@@ -191,6 +198,20 @@ void Engine::addMeshToObject(std::string identifier, MaterialData material, cons
 
   Mesh mesh(renderer, &nextRenderingId, material, vertices, indices);
   mesh.initGraphics(renderer, texturePath.empty() ? "models/couch/diffuse.png" : texturePath);
+  gameObject.meshes.emplace_back(std::move(mesh));
+}
+
+void Engine::addVoxelMeshToObject(std::string identifier, MaterialData material, const std::string &texturePath, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices)
+{
+  auto it = gameObjects.find(identifier);
+  if (it == gameObjects.end())
+  {
+    return;
+  }
+  GameObject &gameObject = it->second;
+
+  Mesh mesh(voxelTextureAtlas, &nextRenderingId, material, vertices, indices);
+  mesh.initGraphics(renderer);
   gameObject.meshes.emplace_back(std::move(mesh));
 }
 
