@@ -8,7 +8,7 @@ class World;
 class ChunkData
 {
 public:
-  static const int chunkSize = 64;
+  static const int chunkSize = 16;
   static const int chunkHeight = 100;
   BlockType blocks[chunkSize * chunkSize * chunkHeight];
 
@@ -29,7 +29,9 @@ public:
   {
     if (x < 0 || x >= chunkSize || y < 0 || y >= chunkHeight || z < 0 || z >= chunkSize)
       return BlockType::Nothing;
-    return blocks[toIndex(x, y, z)];
+
+    int idx = toIndex(x, y, z);
+    return blocks[idx];
   }
 
   void setBlock(int x, int y, int z, BlockType type)

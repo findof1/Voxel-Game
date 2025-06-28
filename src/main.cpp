@@ -27,12 +27,12 @@ void start(Engine *engine)
 }
 
 World world;
-int ident = 0;
 
 void update(Engine *engine, float dt)
 {
+
     glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
-    int renderDistance = 3;
+    int renderDistance = 4;
 
     for (int x = -renderDistance; x <= renderDistance; ++x)
     {
@@ -47,22 +47,42 @@ void update(Engine *engine, float dt)
         }
     }
 
+    for (auto it = world.chunks.begin(); it != world.chunks.end();)
+    {
+        glm::ivec3 chunkPos(it->first);
+        glm::vec3 floatPos(chunkPos);
+        glm::vec3 camPos(engine->camera.Position);
+        float distSquared = std::pow(camPos.x - floatPos.x, 2) + std::pow(camPos.z - floatPos.z, 2);
+        if (distSquared > std::pow((renderDistance * 1.5) * ChunkData::chunkSize, 2))
+        {
+            std::lock_guard<std::mutex> lock(world.chunkDeletionMutex);
+            std::lock_guard<std::mutex> lock2(world.chunkMutex);
+            world.unloadChunk(chunkPos);
+            std::string identifier = std::to_string(chunkPos.x) + "|" + std::to_string(chunkPos.y) + "|" + std::to_string(chunkPos.z);
+            engine->removeGameObject(identifier);
+            it = world.chunks.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+
     CompletedData result;
     const int maxUploadsPerFrame = 1;
     int uploads = 0;
     while (uploads < maxUploadsPerFrame && world.completedMeshes.pop(result))
     {
         auto &[chunkPos, vertices, indices] = result;
-
-        engine->createGameObject(std::to_string(ident), chunkPos, glm::vec3(0), glm::vec3(1));
+        std::string identifier = std::to_string(chunkPos.x) + "|" + std::to_string(chunkPos.y) + "|" + std::to_string(chunkPos.z);
+        engine->createGameObject(identifier, chunkPos, glm::vec3(0), glm::vec3(1));
 
         MaterialData ground;
         ground.diffuseColor = {0.5, 0.5, 0.5};
         ground.hasTexture = 1;
 
-        engine->addVoxelMeshToObject(std::to_string(ident), ground, "textures/tiles.png", vertices, indices);
+        engine->addVoxelMeshToObject(identifier, ground, "textures/tiles.png", vertices, indices);
 
-        ident++;
         uploads++;
     }
 }
@@ -112,6 +132,7 @@ int main()
         world.renderChunk(&engine, "chunk7", glm::ivec3(16, 0, 32));
         world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
         world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));*/
+        world.startWorker();
         world.startWorker();
         world.startWorker();
         engine.run();

@@ -33,5 +33,5 @@ public:
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
 
-  void generateMesh(World *world, BlockDataSO &textureData, const std::unique_ptr<ChunkData> &chunk);
+  bool generateMesh(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk);
 };

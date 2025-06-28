@@ -83,6 +83,8 @@ void Mesh::draw(Renderer *renderer, int currentFrame, glm::mat4 transformation, 
 
 void Mesh::cleanup(VkDevice device, Renderer &renderer)
 {
+  vkDeviceWaitIdle(device);
+
   if (ownsTextureManager)
   {
     textureManager->cleanup(device);

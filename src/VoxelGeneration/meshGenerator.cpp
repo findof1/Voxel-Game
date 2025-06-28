@@ -1,7 +1,7 @@
 #include "meshGenerator.hpp"
 #include "world.hpp"
 
-void MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const std::unique_ptr<ChunkData> &chunk)
+bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk)
 {
   vertices.clear();
   indices.clear();
@@ -12,7 +12,11 @@ void MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
     for (int y = 0; y < ChunkData::chunkHeight; ++y)
       for (int z = 0; z < ChunkData::chunkSize; ++z)
       {
-        BlockType block = chunk->getBlock(x, y, z);
+        BlockType block;
+        {
+          std::lock_guard<std::mutex> lock(world->chunkMutex);
+          block = chunk->getBlock(x, y, z);
+        }
         if (block == BlockType::Nothing || block == BlockType::Air)
           continue;
 
@@ -25,10 +29,12 @@ void MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
               neighborPos.z < 0 || neighborPos.z >= ChunkData::chunkSize)
           {
             glm::ivec3 worldPosition = chunk->worldPosition + neighborPos;
-            neighborBlock = world->getBlock(worldPosition.x, worldPosition.y, worldPosition.z);
+
+            neighborBlock = world->getBlock(worldPosition.x, worldPosition.y, worldPosition.z); // has mutex lock inside btw
           }
           else
           {
+            std::lock_guard<std::mutex> lock(world->chunkMutex);
             neighborBlock = chunk->getBlock(neighborPos.x, neighborPos.y, neighborPos.z);
           }
 
@@ -108,4 +114,5 @@ void MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
           }
         }
       }
+  return true;
 }

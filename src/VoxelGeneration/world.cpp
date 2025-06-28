@@ -86,14 +86,16 @@ BlockType World::getBlock(int x, int y, int z) const
   glm::ivec3 chunkPos = worldToChunkCoords(x, y, z);
   glm::ivec3 localPos = worldToLocalCoords(x, y, z);
 
+  std::lock_guard<std::mutex> lock(chunkMutex);
   auto it = chunks.find(chunkPos);
   if (it == chunks.end())
   {
-
     return BlockType::Nothing;
   }
+  assert(it->second != nullptr);
+  BlockType block = it->second->getBlock(localPos.x, localPos.y, localPos.z);
 
-  return it->second->getBlock(localPos.x, localPos.y, localPos.z);
+  return block;
 }
 
 void World::setBlock(int x, int y, int z, BlockType type)
@@ -105,6 +107,7 @@ void World::setBlock(int x, int y, int z, BlockType type)
   if (it == chunks.end())
     return;
 
+  std::lock_guard<std::mutex> lock(chunkMutex);
   it->second->setBlock(localPos.x, localPos.y, localPos.z, type);
 }
 
@@ -127,8 +130,6 @@ bool World::hasChunk(const glm::ivec3 &chunkPos) const
 void World::unloadChunk(const glm::ivec3 &chunkPos)
 {
   // store chunk in disk
-
-  chunks.erase(chunkPos);
 }
 
 int floorDivide(int numerator, int denominator)
@@ -225,6 +226,6 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
       }
     }
   }
-
+  std::lock_guard<std::mutex> lock(chunkMutex);
   chunks.emplace(chunkPos, std::move(chunk));
 }

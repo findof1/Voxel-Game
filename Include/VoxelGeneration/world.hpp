@@ -21,7 +21,7 @@ class World
 public:
   MeshGenerator meshGenerator;
   BlockDataSO textureDataSource;
-  std::unordered_map<glm::ivec3, std::unique_ptr<ChunkData>, ChunkHasher> chunks;
+  std::unordered_map<glm::ivec3, std::shared_ptr<ChunkData>, ChunkHasher> chunks;
   World();
 
   BlockType getBlock(int x, int y, int z) const;
@@ -45,10 +45,12 @@ public:
   ChunkQueue chunkLoadQueue;
   CompletedQueue completedMeshes;
   std::atomic<bool> running = true;
-  std::mutex chunkMutex;
+  mutable std::mutex chunkMutex;
+  mutable std::mutex chunkDeletionMutex;
 
   void chunkWorker()
   {
+
     MeshGenerator threadMeshGenerator;
     while (running)
     {
@@ -58,20 +60,27 @@ public:
         loadChunk(pos);
 
         bool needsMeshing = false;
+        std::shared_ptr<ChunkData> chunk;
         {
           std::lock_guard<std::mutex> lock(chunkMutex);
           needsMeshing = chunks.find(pos) != chunks.end() && chunks.at(pos)->modifiedChunk;
+          if (needsMeshing)
+          {
+            chunk = chunks.at(pos);
+          }
         }
 
         if (needsMeshing)
         {
           std::vector<Vertex> vertices;
           std::vector<uint32_t> indices;
-          threadMeshGenerator.generateMesh(this, textureDataSource, chunks.at(pos));
+          std::lock_guard<std::mutex> lock(chunkDeletionMutex);
+          threadMeshGenerator.generateMesh(this, textureDataSource, chunk);
+
           {
 
             std::lock_guard<std::mutex> lock(chunkMutex);
-            chunks.at(pos)->modifiedChunk = false;
+            chunk->modifiedChunk = false;
           }
 
           completedMeshes.push({pos, std::move(threadMeshGenerator.vertices), std::move(threadMeshGenerator.indices)});
