@@ -32,7 +32,7 @@ void update(Engine *engine, float dt)
 {
 
     glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
-    int renderDistance = 4;
+    int renderDistance = 8;
 
     for (int x = -renderDistance; x <= renderDistance; ++x)
     {
@@ -74,6 +74,12 @@ void update(Engine *engine, float dt)
     while (uploads < maxUploadsPerFrame && world.completedMeshes.pop(result))
     {
         auto &[chunkPos, vertices, indices] = result;
+
+        if (!world.hasChunk(chunkPos))
+        {
+            continue;
+        }
+
         std::string identifier = std::to_string(chunkPos.x) + "|" + std::to_string(chunkPos.y) + "|" + std::to_string(chunkPos.z);
         engine->createGameObject(identifier, chunkPos, glm::vec3(0), glm::vec3(1));
 

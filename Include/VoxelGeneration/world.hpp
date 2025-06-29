@@ -7,6 +7,43 @@
 #include "MutlithreadingQueue.hpp"
 #include <thread>
 
+struct Biome
+{
+  std::string name;
+  BlockType surfaceBlock;
+  BlockType underwaterSurfaceBlock;
+  BlockType fillerBlock;
+  BlockType undergroundBlock;
+  float minTemp, maxTemp;
+  float minHumid, maxHumid;
+  float minElev, maxElev;
+  int baseHeight, heightDifference;
+  float perlinHeightScale;
+
+  Biome(const char *name,
+        BlockType surfaceBlock,
+        BlockType underwaterSurfaceBlock,
+        BlockType fillerBlock,
+        BlockType undergroundBlock,
+        float minTemp, float maxTemp,
+        float minHumid, float maxHumid,
+        float minElev, float maxElev,
+        int baseHeight, int heightDifference,
+        float perlinHeightScale)
+      : name(name),
+        surfaceBlock(surfaceBlock),
+        underwaterSurfaceBlock(underwaterSurfaceBlock),
+        fillerBlock(fillerBlock),
+        undergroundBlock(undergroundBlock),
+        minTemp(minTemp), maxTemp(maxTemp),
+        minHumid(minHumid), maxHumid(maxHumid),
+        minElev(minElev), maxElev(maxElev),
+        baseHeight(baseHeight), heightDifference(heightDifference),
+        perlinHeightScale(perlinHeightScale)
+  {
+  }
+};
+
 struct ChunkHasher
 {
   size_t operator()(const glm::ivec3 &v) const
@@ -21,6 +58,7 @@ class World
 public:
   MeshGenerator meshGenerator;
   BlockDataSO textureDataSource;
+  std::vector<Biome> biomes;
   std::unordered_map<glm::ivec3, std::shared_ptr<ChunkData>, ChunkHasher> chunks;
   World();
 
@@ -41,6 +79,9 @@ public:
   void renderChunk(Engine *engine, std::string identifier, const glm::ivec3 &chunkPos);
 
   void generateChunk(const glm::ivec3 &chunkPos);
+
+  Biome getBiome(float temperature, float humidity, float elevation);
+  std::tuple<const Biome &, const Biome &, bool> getTwoClosestBiomes(float temperature, float humidity, float elevation);
 
   ChunkQueue chunkLoadQueue;
   CompletedQueue completedMeshes;
