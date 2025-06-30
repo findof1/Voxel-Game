@@ -80,11 +80,46 @@ World::World() : textureDataSource(0.1f, 0.1f)
   textureDataSource.textureDataList.push_back(birchTreeLeafesSolidTexture);
   textureDataSource.textureDataList.push_back(grassStoneTexture);*/
 
-  biomes.emplace_back("Plains", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.4f, 0.6f, 0.5f, 0.5f, 0.3f, 0.8f, 55, 4, 0.01f);
-  biomes.emplace_back("Forest", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.4f, 0.6f, 0.6f, 0.6f, 0.3f, 0.8f, 55, 6, 0.05f);
-  biomes.emplace_back("Desert", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.8f, 0.9f, 0.0f, 0.1f, 0.3f, 0.8f, 55, 4, 0.01f);
-  biomes.emplace_back("Ocean", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.4f, 0.5f, 0.8f, 0.8f, 0.0f, 0.0f, 50, 4, 0.01f);
-  biomes.emplace_back("Mountain", BlockType::Stone, BlockType::Sand, BlockType::Stone, BlockType::Stone, 0.3f, 0.3f, 0.2f, 0.8f, 1.0f, 1.0f, 75, 10, 0.09f);
+  biomes.emplace_back("Null", BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, 0, 0, 0, 0, 0, 0);
+  biomes.emplace_back("Plains", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.5f, 0.5f, 0.5f, 10, 0.4f, 1.2f);
+  biomes.emplace_back("Forest", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.5f, 0.5f, 0.7f, 25, 0.5f, 2.0f);
+  biomes.emplace_back("Desert", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.7f, 0.3f, 0.4f, 15, 0.4f, 1.75f);
+  biomes.emplace_back("Ocean", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.5f, 0.6f, 0.2f, 10, 0.4f, 1.2f);
+  biomes.emplace_back("Mountain", BlockType::Stone, BlockType::Sand, BlockType::Stone, BlockType::Stone, 0.3f, 0.2f, 0.9f, 90, 0.7f, 2.0f);
+
+  int x, z;
+  x = z = -5000;
+  int bestX, bestZ;
+  int distSquared = 10000;
+  while (true)
+  {
+    float temperature = (glm::perlin(glm::vec2(x + 120000, z + 150000) * 0.0005f) + 1) / 2;
+    float humidity = (glm::perlin(glm::vec2(x + 8000, z + 12000) * 0.005f) + 1) / 2;
+    float elevation = ((glm::perlin(glm::vec2(x + 10200, z + 18000) * 0.0001f) + 1) / 2) * 60 + 70;
+
+    auto [distance, biome] = getBiome(temperature, humidity, elevation);
+    if (biome.name == "Desert")
+    {
+      int old = distSquared;
+      distSquared = std::min(distSquared, x * x + z * z);
+      if (distSquared != old)
+      {
+        bestX = x;
+        bestZ = z;
+      }
+    }
+    x += 16;
+    if (x > 5000)
+    {
+      x = -5000;
+      z += 16;
+    }
+    if (z > 5000)
+    {
+      break;
+    }
+  }
+  std::cout << bestX << "|" << bestZ << std::endl;
 }
 
 BlockType World::getBlock(int x, int y, int z) const
@@ -185,18 +220,15 @@ void World::renderChunk(Engine *engine, std::string identifier, const glm::ivec3
   engine->addMeshToObject(identifier, ground, "textures/tiles.png", meshGenerator.vertices, meshGenerator.indices);
 }
 
-Biome World::getBiome(float temperature, float humidity, float elevation)
+std::pair<float, Biome> World::getBiome(float temperature, float humidity, float elevation)
 {
   float closestDistance = std::numeric_limits<float>::max();
   const Biome *closestBiome = nullptr;
 
   for (const Biome &biome : biomes)
   {
-    float biomeTempCenter = (biome.minTemp + biome.maxTemp) * 0.5f;
-    float biomeHumidCenter = (biome.minHumid + biome.maxHumid) * 0.5f;
-    float biomeElevCenter = (biome.minElev + biome.maxElev) * 0.5f;
 
-    float distSq = (temperature - biomeTempCenter) * (temperature - biomeTempCenter) + (humidity - biomeHumidCenter) * (humidity - biomeHumidCenter) + (elevation - biomeElevCenter) * (elevation - biomeElevCenter);
+    float distSq = (temperature - biome.temp) * (temperature - biome.temp) + (humidity - biome.humidity) * (humidity - biome.humidity) + ((elevation - biome.elevation) * (elevation - biome.elevation));
 
     if (distSq < closestDistance)
     {
@@ -205,56 +237,73 @@ Biome World::getBiome(float temperature, float humidity, float elevation)
     }
   }
 
-  return *closestBiome;
+  return {closestDistance, *closestBiome};
 }
 
-std::tuple<const Biome &, const Biome &, bool> World::getTwoClosestBiomes(float temperature, float humidity, float elevation)
+std::pair<float, Biome> World::getBiomeSecondary(float temperature, float humidity, float elevation)
 {
-  const Biome *closest;
-  const Biome *secondClosest;
-  float closestDist = std::numeric_limits<float>::max();
-  float secondDist = std::numeric_limits<float>::max();
+  float closestDistance = std::numeric_limits<float>::max();
+  float secondClosestDistance = std::numeric_limits<float>::max();
+  const Biome *closestBiome = nullptr;
+  const Biome *secondClosestBiome = nullptr;
 
   for (const Biome &biome : biomes)
   {
-    float biomeTempCenter = (biome.minTemp + biome.maxTemp) * 0.5f;
-    float biomeHumidCenter = (biome.minHumid + biome.maxHumid) * 0.5f;
-    float biomeElevCenter = (biome.minElev + biome.maxElev) * 0.5f;
 
-    float distSq =
-        (temperature - biomeTempCenter) * (temperature - biomeTempCenter) +
-        (humidity - biomeHumidCenter) * (humidity - biomeHumidCenter) +
-        (elevation - biomeElevCenter) * (elevation - biomeElevCenter);
+    float distSq = (temperature - biome.temp) * (temperature - biome.temp) + (humidity - biome.humidity) * (humidity - biome.humidity) + (elevation - biome.elevation) * (elevation - biome.elevation);
 
-    if (distSq < closestDist)
+    if (distSq < secondClosestDistance)
     {
-      secondDist = closestDist;
-      secondClosest = closest;
+      secondClosestDistance = closestDistance;
+      secondClosestBiome = closestBiome;
 
-      closestDist = distSq;
-      closest = &biome;
+      closestDistance = distSq;
+      closestBiome = &biome;
     }
-    else if (distSq < secondDist)
+    else if (distSq < closestDistance)
     {
-      secondDist = distSq;
-      secondClosest = &biome;
+      secondClosestDistance = distSq;
+      secondClosestBiome = &biome;
     }
   }
 
-  bool blendBiomes = false;
-  if (closestDist - secondDist < 0.1)
+  return {secondClosestDistance, *secondClosestBiome};
+}
+
+float getPerlinNoise(float x, float y, int octaves, float persistence, float lacunarity, float scale, float amplitude = 1.0f)
+{
+  float frequency = 1.0f;
+  float noiseHeight = 0.0f;
+
+  for (int i = 0; i < octaves; i++)
   {
-    blendBiomes = true;
+    float angle = i * 0.5f;
+    float cosA = cos(angle);
+    float sinA = sin(angle);
+
+    float sampleX = (x * cosA - y * sinA) * frequency / scale;
+    float sampleY = (x * sinA + y * cosA) * frequency / scale;
+
+    float perlinValue = glm::perlin(glm::vec2(sampleX, sampleY));
+    noiseHeight += perlinValue * amplitude;
+
+    amplitude *= persistence;
+    frequency *= lacunarity;
   }
 
-  return {*closest, *secondClosest, true};
+  return noiseHeight;
+}
+
+float edgeBias(float x, float strength = 2.0f)
+{
+  return pow(x, strength) / (pow(x, strength) + pow(1.0f - x, strength));
 }
 
 void World::generateChunk(const glm::ivec3 &chunkPos)
 {
   auto chunk = std::make_unique<ChunkData>(glm::vec3(chunkPos));
 
-  int waterLevel = 50;
+  int waterLevel = 60;
 
   for (int x = 0; x < ChunkData::chunkSize; ++x)
   {
@@ -262,24 +311,36 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
     {
       int worldX = chunkPos.x + x;
       int worldZ = chunkPos.z + z;
-      float temperature = glm::perlin(glm::vec2(worldX + 120000, worldZ + 150000) * 0.001f);
-      float humidity = glm::perlin(glm::vec2(worldX + 6000, worldZ + 14000) * 0.001f);
-      float elevation = glm::perlin(glm::vec2(worldX + 15000, worldZ + 20000) * 0.005f);
-      auto [biome, biome2, blendBiomes] = getTwoClosestBiomes(temperature, humidity, elevation);
-      int baseHeight = biome.baseHeight;
-      int heightDifference = biome.heightDifference;
-      float perlinHeightScale = biome.perlinHeightScale;
-      if (blendBiomes)
-      {
-        baseHeight = (biome.baseHeight + biome2.baseHeight) / 2;
-        heightDifference = (biome.heightDifference + biome2.heightDifference) / 2;
-        perlinHeightScale = (biome.perlinHeightScale + biome2.perlinHeightScale) / 2;
-      }
+      /*
+      float temperature = (glm::perlin(glm::vec2(worldX + 120000, worldZ + 150000) * 0.005f) + 1) / 2;
+      float humidity = (glm::perlin(glm::vec2(worldX + 8000, worldZ + 12000) * 0.001f) + 1) / 2;
+      float elevation = (glm::perlin(glm::vec2(worldX + 10200, worldZ + 18000) * 0.006f) + 1) / 2;
+      // std::cout << "Temp: " + std::to_string(temperature) + " Hum: " + std::to_string(humidity) + " Elev: " + std::to_string(elevation) + "\n";
 
-      float noiseValue = glm::perlin(glm::vec2(worldX, worldZ) * perlinHeightScale);
+      auto [distance, biome] = getBiome(temperature, humidity, elevation);
+      auto [distance2, biome2] = getBiomeSecondary(temperature, humidity, elevation);
+      float blendFactor = std::clamp((distance / (distance + distance2)), 0.0f, 1.0f);
+      // blendFactor = blendFactor * blendFactor * (3 - 2 * blendFactor);
 
-      int terrainHeight = static_cast<int>(noiseValue * heightDifference) + baseHeight;
+      int terrainHeight;
+      // float noiseValue = getPerlinNoise(worldX, worldZ, 8, 0.7f, 2.0f, 400);
+      float noiseValue = getPerlinNoise(worldX, worldZ, 8, glm::mix(biome.persistance, biome2.persistance, blendFactor), glm::mix(biome.lacunarity, biome2.lacunarity, blendFactor), 400);
+      terrainHeight = (elevation * 80 + 40) + static_cast<int>(noiseValue * glm::mix(biome.heightDiff, biome2.heightDiff, blendFactor));
+*/
+      float temperature = (glm::perlin(glm::vec2(worldX + 120000, worldZ + 150000) * 0.005f) + 1) / 2;
+      float humidity = (glm::perlin(glm::vec2(worldX + 8000, worldZ + 12000) * 0.001f) + 1) / 2;
+      float elevation = (glm::perlin(glm::vec2(worldX + 10200, worldZ + 18000) * 0.006f) + 1) / 2;
+      auto [distance, biome] = getBiome(temperature, humidity, elevation);
 
+      int terrainHeight;
+      // float noiseValue = getPerlinNoise(worldX, worldZ, 8, 0.7f, 2.0f, 400);
+      float persistance = std::pow((getPerlinNoise(worldX + 10000, worldZ, 1, 1.0f, 1.0f, 170) + 1) / 2, 2) * 0.3f + 0.4f;
+      float scale = (getPerlinNoise(worldX + 20200, worldZ + 2000, 1, 1.0f, 1.0f, 400) + 1) / 2 * 300 + 300;
+      float base = (getPerlinNoise(worldX + 1000, worldZ + 2000, 1, 1.0f, 1.0f, 1800) + 1) / 2 * 120 + 60;
+
+      float amplitude = edgeBias((getPerlinNoise(worldX + 1000, worldZ + 20000, 1, 1.0f, 1.0f, 1000) + 1) / 2, 3) * 120 + 5;
+      float noiseValue = getPerlinNoise(worldX, worldZ, 8, persistance, 2.0f, scale, amplitude);
+      terrainHeight = static_cast<int>(base + noiseValue);
       for (int y = 0; y < ChunkData::chunkHeight; ++y)
       {
         if (y < terrainHeight - 3)

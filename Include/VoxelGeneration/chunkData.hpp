@@ -9,7 +9,7 @@ class ChunkData
 {
 public:
   static const int chunkSize = 16;
-  static const int chunkHeight = 100;
+  static const int chunkHeight = 256;
   BlockType blocks[chunkSize * chunkSize * chunkHeight];
 
   glm::ivec3 worldPosition;

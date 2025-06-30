@@ -32,6 +32,8 @@ void update(Engine *engine, float dt)
 {
 
     glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
+
+    std::cout << engine->camera.Position.x << "|" << engine->camera.Position.z << std::endl;
     int renderDistance = 8;
 
     for (int x = -renderDistance; x <= renderDistance; ++x)
@@ -138,6 +140,10 @@ int main()
         world.renderChunk(&engine, "chunk7", glm::ivec3(16, 0, 32));
         world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
         world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));*/
+        world.startWorker();
+        world.startWorker();
+        world.startWorker();
+        world.startWorker();
         world.startWorker();
         world.startWorker();
         world.startWorker();

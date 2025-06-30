@@ -14,32 +14,35 @@ struct Biome
   BlockType underwaterSurfaceBlock;
   BlockType fillerBlock;
   BlockType undergroundBlock;
-  float minTemp, maxTemp;
-  float minHumid, maxHumid;
-  float minElev, maxElev;
-  int baseHeight, heightDifference;
-  float perlinHeightScale;
+  float temp;
+  float humidity;
+  int elevation;
+  int heightDiff;
+  float persistance;
+  float lacunarity;
 
   Biome(const char *name,
         BlockType surfaceBlock,
         BlockType underwaterSurfaceBlock,
         BlockType fillerBlock,
         BlockType undergroundBlock,
-        float minTemp, float maxTemp,
-        float minHumid, float maxHumid,
-        float minElev, float maxElev,
-        int baseHeight, int heightDifference,
-        float perlinHeightScale)
+        float temp,
+        float humidity,
+        int elevation,
+        int heightDiff,
+        float persistance,
+        float lacunarity)
       : name(name),
         surfaceBlock(surfaceBlock),
         underwaterSurfaceBlock(underwaterSurfaceBlock),
         fillerBlock(fillerBlock),
         undergroundBlock(undergroundBlock),
-        minTemp(minTemp), maxTemp(maxTemp),
-        minHumid(minHumid), maxHumid(maxHumid),
-        minElev(minElev), maxElev(maxElev),
-        baseHeight(baseHeight), heightDifference(heightDifference),
-        perlinHeightScale(perlinHeightScale)
+        temp(temp),
+        humidity(humidity),
+        elevation(elevation),
+        heightDiff(heightDiff),
+        persistance(persistance),
+        lacunarity(lacunarity)
   {
   }
 };
@@ -80,8 +83,8 @@ public:
 
   void generateChunk(const glm::ivec3 &chunkPos);
 
-  Biome getBiome(float temperature, float humidity, float elevation);
-  std::tuple<const Biome &, const Biome &, bool> getTwoClosestBiomes(float temperature, float humidity, float elevation);
+  std::pair<float, Biome> getBiome(float temperature, float humidity, float elevation);
+  std::pair<float, Biome> getBiomeSecondary(float temperature, float humidity, float elevation);
 
   ChunkQueue chunkLoadQueue;
   CompletedQueue completedMeshes;
