@@ -116,3 +116,21 @@ bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
       }
   return true;
 }
+/*
+bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk)
+{
+  vertices.clear();
+  indices.clear();
+  uint32_t indexCount = 0;
+
+  for (int dir = 0; dir < 6; ++dir)
+  {
+    greedyMeshDirection(world, textureData, chunk, dir, indexCount);
+  }
+
+  return true;
+}*/
+
+void MeshGenerator::greedyMeshDirection(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk, int face, uint32_t &indexCount)
+{
+}

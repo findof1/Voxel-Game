@@ -34,4 +34,5 @@ public:
   std::vector<uint32_t> indices;
 
   bool generateMesh(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk);
+  void greedyMeshDirection(World *world, BlockDataSO &textureData, const std::shared_ptr<ChunkData> &chunk, int face, uint32_t &indexCount);
 };

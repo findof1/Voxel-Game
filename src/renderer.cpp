@@ -36,7 +36,7 @@ void Renderer::initVulkan()
   // bufferManager.createVertexBuffer(vertices, 0, deviceManager.device, deviceManager.physicalDevice, commandPool, graphicsQueue);
   // bufferManager.createIndexBuffer(indices, 0, deviceManager.device, deviceManager.physicalDevice, commandPool, //graphicsQueue);
   // bufferManager.createUniformBuffers(MAX_FRAMES_IN_FLIGHT, deviceManager.device, deviceManager.physicalDevice, 2);
-  descriptorManager.createDescriptorPool(deviceManager.device, MAX_FRAMES_IN_FLIGHT, 1000);
+  descriptorManager.createDescriptorPool(deviceManager.device, MAX_FRAMES_IN_FLIGHT, 2000);
 
   // descriptorManager.createDescriptorSets(deviceManager.device, MAX_FRAMES_IN_FLIGHT, 1);
   // descriptorManager.addDescriptorSets(deviceManager.device, MAX_FRAMES_IN_FLIGHT, 1);
