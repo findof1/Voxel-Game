@@ -8,6 +8,8 @@ enum BlockType
   Dirt,
   Stone,
   Water,
-  Sand
+  Sand,
+  Tree_Trunk,
+  Tree_Leafes_Solid
 };
 #endif

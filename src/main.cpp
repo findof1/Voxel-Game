@@ -336,12 +336,13 @@ int main()
         world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
         world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));*/
         world.startWorker();
+        /*
         world.startWorker();
         world.startWorker();
         world.startWorker();
         world.startWorker();
         world.startWorker();
-        world.startWorker();
+        world.startWorker();*/
         engine.run();
         engine.shutdown();
     }

@@ -6,6 +6,7 @@
 #include "blockDataSO.hpp"
 #include "MutlithreadingQueue.hpp"
 #include <thread>
+#include <random>
 
 struct Biome
 {
@@ -82,6 +83,19 @@ public:
   void renderChunk(Engine *engine, std::string identifier, const glm::ivec3 &chunkPos);
 
   void generateChunk(const glm::ivec3 &chunkPos);
+
+  std::pair<int, BlockType> getSurfaceBlock(std::shared_ptr<ChunkData> chunk, int x, int z)
+  {
+    for (int y = ChunkData::chunkHeight - 1; y >= 0; --y)
+    {
+      BlockType type = chunk->getBlock(x, y, z);
+      if (type != BlockType::Air && type != BlockType::Nothing)
+        return {y, type};
+    }
+    return {-1, BlockType::Nothing};
+  }
+
+  void generateTreeAt(std::shared_ptr<ChunkData> chunk, const glm::ivec3 &position, std::mt19937 &rng);
 
   std::pair<float, Biome> getBiome(float temperature, float humidity, float elevation);
   std::pair<float, Biome> getBiomeSecondary(float temperature, float humidity, float elevation);

@@ -35,54 +35,59 @@ World::World() : textureDataSource(0.1f, 0.1f)
   stoneTexture.down = glm::vec2(3, 4);
   stoneTexture.side = glm::vec2(3, 4);
   stoneTexture.blockType = BlockType::Stone;
+
+  TextureData treeTrunkTexture;
+  treeTrunkTexture.up = glm::vec2(0, 9);
+  treeTrunkTexture.down = glm::vec2(0, 9);
+  treeTrunkTexture.side = glm::vec2(1, 0);
+  treeTrunkTexture.blockType = BlockType::Tree_Trunk;
+
+  TextureData treeLeafesSolidTexture;
+  treeLeafesSolidTexture.up = glm::vec2(5, 1);
+  treeLeafesSolidTexture.down = glm::vec2(5, 1);
+  treeLeafesSolidTexture.side = glm::vec2(5, 1);
+  treeLeafesSolidTexture.blockType = BlockType::Tree_Leafes_Solid;
   /*
-   TextureData treeTrunkTexture;
-   treeTrunkTexture.up = glm::vec2(0, 0);
-   treeTrunkTexture.down = glm::vec2(0, 0);
-   treeTrunkTexture.side = glm::vec2(1, 9);
-   treeTrunkTexture.blockType = BlockType::TreeTrunk;
+     TextureData birchTreeTrunkTexture;
+     birchTreeTrunkTexture.up = glm::vec2(0, 2);
+     birchTreeTrunkTexture.down = glm::vec2(0, 2);
+     birchTreeTrunkTexture.side = glm::vec2(0, 1);
+     birchTreeTrunkTexture.blockType = BlockType::BirchTreeTrunk;
 
-   TextureData birchTreeTrunkTexture;
-   birchTreeTrunkTexture.up = glm::vec2(0, 2);
-   birchTreeTrunkTexture.down = glm::vec2(0, 2);
-   birchTreeTrunkTexture.side = glm::vec2(0, 1);
-   birchTreeTrunkTexture.blockType = BlockType::BirchTreeTrunk;
+     TextureData birchTreeLeafesSolidTexture;
+     birchTreeLeafesSolidTexture.up = glm::vec2(5, 9);
+     birchTreeLeafesSolidTexture.down = glm::vec2(5, 9);
+     birchTreeLeafesSolidTexture.side = glm::vec2(5, 9);
+     birchTreeLeafesSolidTexture.blockType = BlockType::BirchTreeLeafesSolid;
 
-   TextureData birchTreeLeafesSolidTexture;
-   birchTreeLeafesSolidTexture.up = glm::vec2(5, 9);
-   birchTreeLeafesSolidTexture.down = glm::vec2(5, 9);
-   birchTreeLeafesSolidTexture.side = glm::vec2(5, 9);
-   birchTreeLeafesSolidTexture.blockType = BlockType::BirchTreeLeafesSolid;
+     TextureData treeLeafesSolidTexture;
+     treeLeafesSolidTexture.up = glm::vec2(5, 8);
+     treeLeafesSolidTexture.down = glm::vec2(5, 8);
+     treeLeafesSolidTexture.side = glm::vec2(5, 8);
+     treeLeafesSolidTexture.blockType = BlockType::TreeLeafesSolid;
 
-   TextureData treeLeafesSolidTexture;
-   treeLeafesSolidTexture.up = glm::vec2(5, 8);
-   treeLeafesSolidTexture.down = glm::vec2(5, 8);
-   treeLeafesSolidTexture.side = glm::vec2(5, 8);
-   treeLeafesSolidTexture.blockType = BlockType::TreeLeafesSolid;
-
-   TextureData grassStoneTexture;
-   grassStoneTexture.up = glm::vec2(8, 9);
-   grassStoneTexture.down = glm::vec2(3, 5);
-   grassStoneTexture.side = glm::vec2(2, 5);
-   grassStoneTexture.blockType = BlockType::Grass_Stone;
-   */
+     TextureData grassStoneTexture;
+     grassStoneTexture.up = glm::vec2(8, 9);
+     grassStoneTexture.down = glm::vec2(3, 5);
+     grassStoneTexture.side = glm::vec2(2, 5);
+     grassStoneTexture.blockType = BlockType::Grass_Stone;
+     */
 
   textureDataSource.addTextureData(grassTexture, BlockType::Grass_Dirt);
   textureDataSource.addTextureData(dirtTexture, BlockType::Dirt);
   textureDataSource.addTextureData(waterTexture, BlockType::Water);
   textureDataSource.addTextureData(sandTexture, BlockType::Sand);
   textureDataSource.addTextureData(stoneTexture, BlockType::Stone);
+  textureDataSource.addTextureData(treeTrunkTexture, BlockType::Tree_Trunk);
+  textureDataSource.addTextureData(treeLeafesSolidTexture, BlockType::Tree_Leafes_Solid);
   /*
-  textureDataSource.textureDataList.push_back(stoneTexture);
-  textureDataSource.textureDataList.push_back(treeTrunkTexture);
-  textureDataSource.textureDataList.push_back(treeLeafesSolidTexture);
   textureDataSource.textureDataList.push_back(birchTreeTrunkTexture);
   textureDataSource.textureDataList.push_back(birchTreeLeafesSolidTexture);
   textureDataSource.textureDataList.push_back(grassStoneTexture);*/
 
-  biomes.emplace_back("Null", BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, 0, 0, 0, 0, 0, 0);
+  biomes.emplace_back("Null", BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, -1, -1, -1, 0, 0, 0);
   biomes.emplace_back("Plains", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.5f, 0.5f, 0.5f, 10, 0.4f, 1.2f);
-  biomes.emplace_back("Forest", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.5f, 0.5f, 0.7f, 25, 0.5f, 2.0f);
+  biomes.emplace_back("Forest", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.6f, 0.7f, 0.7f, 25, 0.5f, 2.0f);
   biomes.emplace_back("Desert", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.7f, 0.3f, 0.4f, 15, 0.4f, 1.75f);
   biomes.emplace_back("Ocean", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.5f, 0.6f, 0.2f, 10, 0.4f, 1.2f);
   biomes.emplace_back("Mountain", BlockType::Stone, BlockType::Sand, BlockType::Stone, BlockType::Stone, 0.3f, 0.2f, 0.9f, 90, 0.7f, 2.0f);
@@ -90,15 +95,16 @@ World::World() : textureDataSource(0.1f, 0.1f)
   int x, z;
   x = z = -5000;
   int bestX, bestZ;
-  int distSquared = 10000;
+  bestX, bestZ = -100000;
+  int distSquared = 10000000;
   while (true)
   {
-    float temperature = (glm::perlin(glm::vec2(x + 120000, z + 150000) * 0.0005f) + 1) / 2;
-    float humidity = (glm::perlin(glm::vec2(x + 8000, z + 12000) * 0.005f) + 1) / 2;
-    float elevation = ((glm::perlin(glm::vec2(x + 10200, z + 18000) * 0.0001f) + 1) / 2) * 60 + 70;
+    float temperature = (glm::perlin(glm::vec2(x + 120000, z + 150000) * 0.005f) + 1) / 2;
+    float humidity = (glm::perlin(glm::vec2(x + 8000, z + 12000) * 0.001f) + 1) / 2;
+    float elevation = (glm::perlin(glm::vec2(x + 10200, z + 18000) * 0.006f) + 1) / 2;
 
     auto [distance, biome] = getBiome(temperature, humidity, elevation);
-    if (biome.name == "Desert")
+    if (biome.name == "Forest")
     {
       int old = distSquared;
       distSquared = std::min(distSquared, x * x + z * z);
@@ -301,10 +307,11 @@ float edgeBias(float x, float strength = 2.0f)
 
 void World::generateChunk(const glm::ivec3 &chunkPos)
 {
-  auto chunk = std::make_unique<ChunkData>(glm::vec3(chunkPos));
+  auto chunk = std::make_shared<ChunkData>(glm::vec3(chunkPos));
 
   int waterLevel = 60;
 
+  bool forestChunk = false;
   for (int x = 0; x < ChunkData::chunkSize; ++x)
   {
     for (int z = 0; z < ChunkData::chunkSize; ++z)
@@ -327,11 +334,14 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
       float noiseValue = getPerlinNoise(worldX, worldZ, 8, glm::mix(biome.persistance, biome2.persistance, blendFactor), glm::mix(biome.lacunarity, biome2.lacunarity, blendFactor), 400);
       terrainHeight = (elevation * 80 + 40) + static_cast<int>(noiseValue * glm::mix(biome.heightDiff, biome2.heightDiff, blendFactor));
 */
-      float temperature = (glm::perlin(glm::vec2(worldX + 120000, worldZ + 150000) * 0.005f) + 1) / 2;
-      float humidity = (glm::perlin(glm::vec2(worldX + 8000, worldZ + 12000) * 0.001f) + 1) / 2;
-      float elevation = (glm::perlin(glm::vec2(worldX + 10200, worldZ + 18000) * 0.006f) + 1) / 2;
+      float temperature = (glm::perlin(glm::vec2(worldX + 140000, worldZ + 150000) * 0.005f) + 1) / 2;
+      float humidity = (glm::perlin(glm::vec2(worldX + 2000, worldZ + 12000) * 0.001f) + 1) / 2;
+      float elevation = (glm::perlin(glm::vec2(worldX + 20200, worldZ + 18000) * 0.006f) + 1) / 2;
       auto [distance, biome] = getBiome(temperature, humidity, elevation);
-
+      if (biome.name == "Forest")
+      {
+        forestChunk = true;
+      }
       int terrainHeight;
       // float noiseValue = getPerlinNoise(worldX, worldZ, 8, 0.7f, 2.0f, 400);
       float persistance = std::pow((getPerlinNoise(worldX + 10000, worldZ, 1, 1.0f, 1.0f, 170) + 1) / 2, 2) * 0.3f + 0.4f;
@@ -369,6 +379,71 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
       }
     }
   }
+
+  if (forestChunk)
+  {
+    std::mt19937 rng(chunkPos.x * 73856093 ^ chunkPos.z * 19349663);
+    std::uniform_int_distribution<int> dist(0, ChunkData::chunkSize - 1);
+    for (int i = 0; i < 5; ++i)
+    {
+      int x = dist(rng);
+      int z = dist(rng);
+
+      auto [y, type] = getSurfaceBlock(chunk, x, z);
+      std::cout << "E" << std::endl;
+      if (y == -1)
+        continue;
+      if (type != BlockType::Grass_Dirt)
+        continue;
+
+      std::cout << "F" << std::endl;
+      generateTreeAt(chunk, {x, y + 1, z}, rng);
+    }
+  }
+
   std::lock_guard<std::mutex> lock(chunkMutex);
   chunks.emplace(chunkPos, std::move(chunk));
+}
+
+void World::generateTreeAt(std::shared_ptr<ChunkData> chunk, const glm::ivec3 &position, std::mt19937 &rng)
+{
+
+  std::uniform_int_distribution<int> trunkHeightDist(4, 40);
+  int trunkHeight = trunkHeightDist(rng);
+  int trunkWidth = 1;
+
+  if (trunkHeight > 11)
+  {
+    std::uniform_int_distribution<int> trunkWidthDist(1, trunkHeight / 11);
+    trunkWidth = trunkWidthDist(rng);
+  }
+  std::uniform_int_distribution<int> leafRadiusDist(3, 4 * trunkWidth);
+  int leafRadius = leafRadiusDist(rng);
+
+  for (int i = 0; i < trunkHeight; i++)
+  {
+    for (int w = 0; w < trunkWidth; w++)
+    {
+      for (int l = 0; l < trunkWidth; l++)
+      {
+        chunk->setBlock(position.x + w, position.y + i, position.z + l, BlockType::Tree_Trunk);
+      }
+    }
+  }
+
+  int leafBaseY = position.y + trunkHeight - 2;
+  for (int dx = -leafRadius; dx <= leafRadius; ++dx)
+  {
+    for (int dy = -leafRadius / 2; dy <= leafRadius / 2; ++dy)
+    {
+      for (int dz = -leafRadius; dz <= leafRadius; ++dz)
+      {
+        int dist = abs(dx) + abs(dy) + abs(dz);
+        if (dist <= leafRadius + 1)
+        {
+          chunk->setBlock(position.x + dx, leafBaseY + dy, position.z + dz, BlockType::Tree_Leafes_Solid);
+        }
+      }
+    }
+  }
 }
