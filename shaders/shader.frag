@@ -5,6 +5,9 @@ layout(location = 1) in vec4 diffuseColor;
 layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec3 viewPos;
 layout(location = 4) in vec3 fragPos;
+layout(location = 5) in vec2 tileStart;
+layout(location = 6) in vec2 tileSize;
+layout(location = 7) in vec2 repeatCount;
 
 layout(push_constant) uniform MaterialData {
     vec3 ambientColor;
@@ -25,9 +28,12 @@ layout(binding = 1) uniform sampler2D texSampler;
 
 void main() {
 
+        vec2 tiledUV = fract(fragTexCoord * repeatCount);
+        vec2 finalUV = tileStart + tiledUV * tileSize;
+        
         if(fragNormal.x <0 && fragNormal.y <0 && fragNormal.z <0){
             if(material.hasTexture == 1) {
-                vec4 texColor = texture(texSampler, fragTexCoord);
+                vec4 texColor = texture(texSampler, finalUV);
                 if(texColor.a < 0.1){
                     discard;
                 }
@@ -65,7 +71,7 @@ void main() {
          }
          
          if(material.hasTexture == 1) {
-            vec4 texColor = texture(texSampler, fragTexCoord);
+            vec4 texColor = texture(texSampler, finalUV);
             litColor *= texColor.rgb;
         }
         outColor = vec4(litColor, diffuseColor.a);

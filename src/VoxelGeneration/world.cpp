@@ -7,33 +7,33 @@ World::World() : textureDataSource(0.1f, 0.1f)
 {
 
   TextureData grassTexture;
-  grassTexture.up = glm::vec2(8, 1);
-  grassTexture.down = glm::vec2(7, 6);
-  grassTexture.side = glm::vec2(7, 5);
+  grassTexture.up = glm::vec2(8, 0);
+  grassTexture.down = glm::vec2(7, 5);
+  grassTexture.side = glm::vec2(7, 4);
   grassTexture.blockType = BlockType::Grass_Dirt;
 
   TextureData dirtTexture;
-  dirtTexture.up = glm::vec2(7, 6);
-  dirtTexture.down = glm::vec2(7, 6);
-  dirtTexture.side = glm::vec2(7, 6);
+  dirtTexture.up = glm::vec2(7, 5);
+  dirtTexture.down = glm::vec2(7, 5);
+  dirtTexture.side = glm::vec2(7, 5);
   dirtTexture.blockType = BlockType::Dirt;
 
   TextureData waterTexture;
-  waterTexture.up = glm::vec2(0, 7);
-  waterTexture.down = glm::vec2(0, 7);
-  waterTexture.side = glm::vec2(0, 7);
+  waterTexture.up = glm::vec2(0, 6);
+  waterTexture.down = glm::vec2(0, 6);
+  waterTexture.side = glm::vec2(0, 6);
   waterTexture.blockType = BlockType::Water;
 
   TextureData sandTexture;
-  sandTexture.up = glm::vec2(3, 7);
-  sandTexture.down = glm::vec2(3, 7);
-  sandTexture.side = glm::vec2(3, 7);
+  sandTexture.up = glm::vec2(3, 6);
+  sandTexture.down = glm::vec2(3, 6);
+  sandTexture.side = glm::vec2(3, 6);
   sandTexture.blockType = BlockType::Sand;
 
   TextureData stoneTexture;
-  stoneTexture.up = glm::vec2(3, 5);
-  stoneTexture.down = glm::vec2(3, 5);
-  stoneTexture.side = glm::vec2(3, 5);
+  stoneTexture.up = glm::vec2(3, 4);
+  stoneTexture.down = glm::vec2(3, 4);
+  stoneTexture.side = glm::vec2(3, 4);
   stoneTexture.blockType = BlockType::Stone;
   /*
    TextureData treeTrunkTexture;

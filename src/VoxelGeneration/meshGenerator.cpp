@@ -47,57 +47,56 @@ bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
               vertex.color = glm::vec3(0);
               vertex.normal = directions[face];
               vertex.pos = vertexPos;
-
-              glm::vec2 uv;
+              vertex.tileSize = glm::vec2(textureData.textureSizeX, textureData.textureSizeY);
+              vertex.repeatCount = glm::u8vec2(1, 1);
+              glm::vec2 uv = glm::vec2(1, 1);
 
               if (face == 2)
               {
-                uv = glm::vec2(textureData.textureDataList.at(block).up.x * textureData.textureSizeX, textureData.textureDataList.at(block).up.y * textureData.textureSizeY);
+                vertex.tileStart = glm::vec2(textureData.textureDataList.at(block).up.x * textureData.textureSizeX, textureData.textureDataList.at(block).up.y * textureData.textureSizeY);
               }
               else if (face == 3)
               {
-                uv = glm::vec2(textureData.textureDataList.at(block).down.x * textureData.textureSizeX, textureData.textureDataList.at(block).down.y * textureData.textureSizeY);
+                vertex.tileStart = glm::vec2(textureData.textureDataList.at(block).down.x * textureData.textureSizeX, textureData.textureDataList.at(block).down.y * textureData.textureSizeY);
               }
               else
               {
-                uv = glm::vec2(textureData.textureDataList.at(block).side.x * textureData.textureSizeX, textureData.textureDataList.at(block).side.y * textureData.textureSizeY);
+                vertex.tileStart = glm::vec2(textureData.textureDataList.at(block).side.x * textureData.textureSizeX, textureData.textureDataList.at(block).side.y * textureData.textureSizeY);
               }
 
-              // This works I guess. Don't know why, but it does...
               if (face == 2 || face == 3 || face == 0 || face == 1)
               {
                 if (vert == 1)
                 {
-                  uv.y -= textureData.textureSizeY;
+                  uv.y -= vertex.repeatCount.y;
                 }
                 if (vert == 2)
                 {
-                  uv.y -= textureData.textureSizeY;
-                  uv.x += textureData.textureSizeX;
+                  uv.y -= vertex.repeatCount.y;
+                  uv.x += vertex.repeatCount.x;
                 }
                 if (vert == 3)
                 {
-                  uv.x += textureData.textureSizeX;
+                  uv.x += vertex.repeatCount.x;
                 }
               }
               else if (face == 4 || face == 5)
               {
                 if (vert == 1)
                 {
-                  uv.x += textureData.textureSizeX;
+                  uv.x += vertex.repeatCount.x;
                 }
                 if (vert == 2)
                 {
-                  uv.y -= textureData.textureSizeY;
-                  uv.x += textureData.textureSizeX;
+                  uv.y -= vertex.repeatCount.y;
+                  uv.x += vertex.repeatCount.x;
                 }
                 if (vert == 3)
                 {
-                  uv.y -= textureData.textureSizeY;
+                  uv.y -= vertex.repeatCount.y;
                 }
               }
               vertex.texPos = uv;
-              //
 
               vertices.emplace_back(vertex);
             }
