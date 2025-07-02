@@ -34,12 +34,13 @@ public:
     return blocks[idx];
   }
 
-  void setBlock(int x, int y, int z, BlockType type)
+  int setBlock(int x, int y, int z, BlockType type)
   {
     if (x < 0 || x >= chunkSize || y < 0 || y >= chunkHeight || z < 0 || z >= chunkSize)
-      return;
+      return -1;
     blocks[toIndex(x, y, z)] = type;
     modifiedChunk = true;
+    return 0;
   }
 };
 

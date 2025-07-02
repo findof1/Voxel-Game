@@ -173,7 +173,7 @@ void tryAddChunk(int dx, int dz, glm::ivec3 playerChunk)
 {
     glm::ivec3 chunkPos = playerChunk + glm::ivec3(dx * ChunkData::chunkSize, 0, dz * ChunkData::chunkSize);
 
-    if (!world.chunkLoadQueue.has(chunkPos) && !world.hasChunk(chunkPos))
+    if (!world.chunkLoadQueue.has(chunkPos))
     {
         world.chunkLoadQueue.push(chunkPos);
     }
@@ -185,7 +185,7 @@ void update(Engine *engine, float dt)
     {
         glm::vec3 movementInput(0.0f);
 
-        float moveSpeed = 2.0f;
+        float moveSpeed = 8.0f;
         if (engine->input.keys[GLFW_KEY_LEFT_SHIFT])
             moveSpeed *= 2.0f;
 
@@ -220,7 +220,7 @@ void update(Engine *engine, float dt)
 
     glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
 
-    int renderDistance = 8;
+    int renderDistance = 4;
 
     for (int r = renderDistance; r >= 0; r--)
     {
@@ -275,6 +275,12 @@ void update(Engine *engine, float dt)
         }
 
         std::string identifier = std::to_string(chunkPos.x) + "|" + std::to_string(chunkPos.y) + "|" + std::to_string(chunkPos.z);
+        if (engine->gameObjects.find(identifier) != engine->gameObjects.end())
+        {
+            std::lock_guard<std::mutex> lock(world.chunkDeletionMutex);
+            std::lock_guard<std::mutex> lock2(world.chunkMutex);
+            engine->removeGameObject(identifier);
+        }
         engine->createGameObject(identifier, chunkPos, glm::vec3(0), glm::vec3(1));
 
         MaterialData ground;

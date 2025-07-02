@@ -8,6 +8,12 @@
 #include <thread>
 #include <random>
 
+struct BlockQueueData
+{
+  glm::ivec3 blockPos;
+  BlockType blockType;
+};
+
 struct Biome
 {
   std::string name;
@@ -64,11 +70,13 @@ public:
   BlockDataSO textureDataSource;
   std::vector<Biome> biomes;
   std::unordered_map<glm::ivec3, std::shared_ptr<ChunkData>, ChunkHasher> chunks;
+  std::unordered_map<glm::ivec3, std::vector<BlockQueueData>, ChunkHasher> blocksQueue;
+
   World();
 
   BlockType getBlock(int x, int y, int z) const;
 
-  void setBlock(int x, int y, int z, BlockType type);
+  int setBlock(int x, int y, int z, BlockType type);
 
   void loadChunk(const glm::ivec3 &chunkPos);
 
@@ -122,9 +130,11 @@ public:
         {
           std::lock_guard<std::mutex> lock(chunkMutex);
           needsMeshing = chunks.find(pos) != chunks.end() && chunks.at(pos)->modifiedChunk;
+
           if (needsMeshing)
           {
             chunk = chunks.at(pos);
+            chunk->modifiedChunk = false;
           }
         }
 
@@ -134,12 +144,6 @@ public:
           std::vector<uint32_t> indices;
           std::lock_guard<std::mutex> lock(chunkDeletionMutex);
           threadMeshGenerator.generateMesh(this, textureDataSource, chunk);
-
-          {
-
-            std::lock_guard<std::mutex> lock(chunkMutex);
-            chunk->modifiedChunk = false;
-          }
 
           completedMeshes.push({pos, std::move(threadMeshGenerator.vertices), std::move(threadMeshGenerator.indices)});
         }

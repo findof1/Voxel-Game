@@ -145,17 +145,17 @@ BlockType World::getBlock(int x, int y, int z) const
   return block;
 }
 
-void World::setBlock(int x, int y, int z, BlockType type)
+int World::setBlock(int x, int y, int z, BlockType type)
 {
   glm::ivec3 chunkPos = worldToChunkCoords(x, y, z);
   glm::ivec3 localPos = worldToLocalCoords(x, y, z);
 
   auto it = chunks.find(chunkPos);
   if (it == chunks.end())
-    return;
+    return -1;
 
   std::lock_guard<std::mutex> lock(chunkMutex);
-  it->second->setBlock(localPos.x, localPos.y, localPos.z, type);
+  return it->second->setBlock(localPos.x, localPos.y, localPos.z, type);
 }
 
 void World::loadChunk(const glm::ivec3 &chunkPos)
@@ -348,7 +348,7 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
       float scale = (getPerlinNoise(worldX + 20200, worldZ + 2000, 1, 1.0f, 1.0f, 400) + 1) / 2 * 300 + 300;
       float base = (getPerlinNoise(worldX + 1000, worldZ + 2000, 1, 1.0f, 1.0f, 1800) + 1) / 2 * 120 + 60;
 
-      float amplitude = edgeBias((getPerlinNoise(worldX + 1000, worldZ + 20000, 1, 1.0f, 1.0f, 1000) + 1) / 2, 3) * 120 + 5;
+      float amplitude = edgeBias((getPerlinNoise(worldX + 1000, worldZ + 20000, 1, 1.0f, 1.0f, 600) + 1) / 2, 3) * 120 + 5;
       float noiseValue = getPerlinNoise(worldX, worldZ, 8, persistance, 2.0f, scale, amplitude);
       terrainHeight = static_cast<int>(base + noiseValue);
       for (int y = 0; y < ChunkData::chunkHeight; ++y)
@@ -380,23 +380,26 @@ void World::generateChunk(const glm::ivec3 &chunkPos)
     }
   }
 
+  for (BlockQueueData &block : blocksQueue[chunkPos])
+  {
+    chunk->setBlock(block.blockPos.x, block.blockPos.y, block.blockPos.z, block.blockType);
+  }
+
   if (forestChunk)
   {
     std::mt19937 rng(chunkPos.x * 73856093 ^ chunkPos.z * 19349663);
     std::uniform_int_distribution<int> dist(0, ChunkData::chunkSize - 1);
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < ChunkData::chunkSize / 3; ++i)
     {
       int x = dist(rng);
       int z = dist(rng);
 
       auto [y, type] = getSurfaceBlock(chunk, x, z);
-      std::cout << "E" << std::endl;
       if (y == -1)
         continue;
       if (type != BlockType::Grass_Dirt)
         continue;
 
-      std::cout << "F" << std::endl;
       generateTreeAt(chunk, {x, y + 1, z}, rng);
     }
   }
@@ -426,7 +429,20 @@ void World::generateTreeAt(std::shared_ptr<ChunkData> chunk, const glm::ivec3 &p
     {
       for (int l = 0; l < trunkWidth; l++)
       {
-        chunk->setBlock(position.x + w, position.y + i, position.z + l, BlockType::Tree_Trunk);
+        int result = chunk->setBlock(position.x + w, position.y + i, position.z + l, BlockType::Tree_Trunk);
+        if (result == -1)
+        {
+          glm::vec3 pos = chunk->worldPosition + glm::ivec3(position.x + w, position.y + i, position.z + l);
+          result = setBlock(pos.x, pos.y, pos.z, BlockType::Tree_Trunk);
+          if (result == -1)
+          {
+            BlockQueueData block;
+            block.blockPos = worldToLocalCoords(pos.x, pos.y, pos.z);
+            block.blockType = BlockType::Tree_Trunk;
+
+            blocksQueue[worldToChunkCoords(pos.x, pos.y, pos.z)].emplace_back(block);
+          }
+        }
       }
     }
   }
@@ -434,14 +450,27 @@ void World::generateTreeAt(std::shared_ptr<ChunkData> chunk, const glm::ivec3 &p
   int leafBaseY = position.y + trunkHeight - 2;
   for (int dx = -leafRadius; dx <= leafRadius; ++dx)
   {
-    for (int dy = -leafRadius / 2; dy <= leafRadius / 2; ++dy)
+    for (int dy = -leafRadius; dy <= leafRadius; ++dy)
     {
       for (int dz = -leafRadius; dz <= leafRadius; ++dz)
       {
-        int dist = abs(dx) + abs(dy) + abs(dz);
-        if (dist <= leafRadius + 1)
+        int dist = dx * dx + dy * dy + dz * dz;
+        if (dist < leafRadius * leafRadius)
         {
-          chunk->setBlock(position.x + dx, leafBaseY + dy, position.z + dz, BlockType::Tree_Leafes_Solid);
+          int result = chunk->setBlock(position.x + dx, leafBaseY + dy, position.z + dz, BlockType::Tree_Leafes_Solid);
+          if (result == -1)
+          {
+            glm::vec3 pos = chunk->worldPosition + glm::ivec3(position.x + dx, leafBaseY + dy, position.z + dz);
+            result = setBlock(pos.x, pos.y, pos.z, BlockType::Tree_Leafes_Solid);
+            if (result == -1)
+            {
+              BlockQueueData block;
+              block.blockPos = worldToLocalCoords(pos.x, pos.y, pos.z);
+              block.blockType = BlockType::Tree_Leafes_Solid;
+
+              blocksQueue[worldToChunkCoords(pos.x, pos.y, pos.z)].emplace_back(block);
+            }
+          }
         }
       }
     }
