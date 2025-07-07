@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 #include "gameObject.hpp"
+#include "debugDrawer.hpp"
 struct Input
 {
   bool keys[GLFW_KEY_LAST] = {false};
@@ -19,8 +20,10 @@ public:
   Input input;
 
   std::unordered_map<std::string, GameObject> gameObjects;
+  std::unordered_map<std::string, GameObject> uiObjects;
+  VulkanDebugDrawer *linesDrawer = nullptr;
 
-  Engine(uint32_t width = 1600, uint32_t height = 1200) : WIDTH(width), HEIGHT(height), camera(), renderer(camera, WIDTH, HEIGHT)
+  Engine(uint32_t width = 1600, uint32_t height = 1000) : WIDTH(width), HEIGHT(height), camera(), renderer(camera, WIDTH, HEIGHT)
   {
   }
 
@@ -69,6 +72,8 @@ public:
   void removeGameObject(std::string identifier);
   void addMeshToObject(std::string identifier, MaterialData material, const std::string &texturePath, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
   void loadModel(std::string identifier, const std::string objPath, const std::string mtlPath);
+
+  void createUIObject(std::string identifier, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
   void disableCursor();
   void enableCursor();

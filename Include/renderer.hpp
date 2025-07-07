@@ -52,7 +52,7 @@ public:
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME};
 
-  const bool enableValidationLayers = true;
+  const bool enableValidationLayers = false;
 
   GLFWwindow *window;
 

@@ -38,10 +38,10 @@ void Engine::init(std::string windowName, std::function<void(Engine *)> startFn,
 
   initWindow(windowName);
   renderer.initVulkan();
-  // debugDrawer = new VulkanDebugDrawer(renderer, nextRenderingId, true);
+  linesDrawer = new VulkanDebugDrawer(renderer, nextRenderingId, true);
 
   voxelTextureAtlas = std::make_shared<TextureManager>(renderer.bufferManager, renderer);
-  voxelTextureAtlas->createTextureImage("textures/tiles.png", renderer.deviceManager.device, renderer.deviceManager.physicalDevice, renderer.commandPool, renderer.graphicsQueue);
+  voxelTextureAtlas->createTextureImage("textures/newAtlas.png", renderer.deviceManager.device, renderer.deviceManager.physicalDevice, renderer.commandPool, renderer.graphicsQueue);
 
   voxelTextureAtlas->createTextureImageView(renderer.deviceManager.device);
 
@@ -93,15 +93,21 @@ void Engine::render()
   glm::mat4 view = camera.getViewMatrix();
   glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float)WIDTH / HEIGHT, 0.1f, 10000.0f);
   glm::mat4 ortho = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT, -10.0f, 10.0f);
+  glm::mat4 identityView = glm::mat4(1.0f);
 
   for (auto &[key, gameObject] : gameObjects)
   {
     renderer.renderQueue.push_back(makeGameObjectCommand(gameObject, &renderer, renderer.getCurrentFrame(), view, proj));
   }
 
-  // renderer.renderQueue.push_back(makeDebugCommand(debugDrawer, &renderer, debugDrawer->debugLines, view, proj, renderer.getCurrentFrame()));
+  for (auto &[key, uiObject] : uiObjects)
+  {
+    renderer.renderQueue.push_back(makeGameObjectCommand(uiObject, &renderer, renderer.getCurrentFrame(), identityView, ortho));
+  }
 
+  renderer.renderQueue.push_back(makeDebugCommand(linesDrawer, &renderer, linesDrawer->debugLines, view, proj, renderer.getCurrentFrame()));
   renderer.drawFrame();
+  linesDrawer->clearLines();
 }
 
 void Engine::updateFreeCam(float dt)
@@ -176,6 +182,20 @@ void Engine::createGameObject(std::string identifier, glm::vec3 position, glm::v
   gameObjects.emplace(identifier, std::move(gameObject));
 }
 
+void Engine::createUIObject(std::string identifier, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+  if (uiObjects.find(identifier) != uiObjects.end())
+  {
+    return;
+  }
+
+  GameObject gameObject;
+  gameObject.position = position;
+  gameObject.rotationZYX = rotation;
+  gameObject.scale = scale;
+  uiObjects.emplace(identifier, std::move(gameObject));
+}
+
 void Engine::removeGameObject(std::string identifier)
 {
   if (gameObjects.find(identifier) == gameObjects.end())
@@ -192,7 +212,11 @@ void Engine::addMeshToObject(std::string identifier, MaterialData material, cons
   auto it = gameObjects.find(identifier);
   if (it == gameObjects.end())
   {
-    return;
+    it = uiObjects.find(identifier);
+    if (it == uiObjects.end())
+    {
+      return;
+    }
   }
   GameObject &gameObject = it->second;
 

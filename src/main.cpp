@@ -179,6 +179,69 @@ void tryAddChunk(int dx, int dz, glm::ivec3 playerChunk)
     }
 }
 
+bool raycastVoxel(glm::vec3 originInitial, glm::vec3 direction, float maxDistance, glm::ivec3 &hitBlock, glm::ivec3 &hitNormal)
+{
+    constexpr float originEpsilon = 1e-2f;
+    glm::vec3 origin = originInitial + glm::normalize(direction) * originEpsilon;
+    glm::vec3 pos = glm::floor(origin);
+
+    glm::vec3 deltaDist = glm::abs(glm::vec3(1.0f) / direction);
+    glm::ivec3 step;
+    glm::vec3 sideDist;
+    for (int i = 0; i < 3; i++)
+    {
+        if (direction[i] > 0)
+        {
+            step[i] = 1;
+            sideDist[i] = ((float(pos[i]) + 1.0f) - origin[i]) * deltaDist[i];
+        }
+        else
+        {
+            step[i] = -1;
+            sideDist[i] = (origin[i] - float(pos[i])) * deltaDist[i];
+        }
+    }
+
+    float distanceTraveled = 0.0f;
+    glm::ivec3 normal(0);
+
+    while (distanceTraveled < maxDistance)
+    {
+        int axis;
+        if (sideDist.x < sideDist.y)
+        {
+            if (sideDist.x < sideDist.z)
+                axis = 0; // x
+            else
+                axis = 2; // z
+        }
+        else
+        {
+            if (sideDist.y < sideDist.z)
+                axis = 1; // y
+            else
+                axis = 2; // z
+        }
+
+        pos[axis] += step[axis];
+        sideDist[axis] += deltaDist[axis];
+
+        normal = glm::ivec3(0);
+        normal[axis] = -step[axis];
+
+        distanceTraveled = glm::length(glm::vec3(pos) - origin);
+
+        if (world.getBlock(pos.x, pos.y, pos.z) != BlockType::Air)
+        {
+            hitBlock = pos;
+            hitNormal = normal;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void update(Engine *engine, float dt)
 {
     if (engine->input.mouseButtons[GLFW_MOUSE_BUTTON_RIGHT])
@@ -213,11 +276,47 @@ void update(Engine *engine, float dt)
 
         playerVel.y -= 9 * dt;
         playerPos = playerPos + playerVel * dt;
-        resolveCollisions(playerPos, playerVel, glm::vec3(0.8f, 1.5f, 0.8f));
+        resolveCollisions(playerPos, playerVel, glm::vec3(0.4f, 0.9f, 0.4f));
         engine->gameObjects.at("player").position = playerPos;
+        engine->gameObjects.at("skyBox").position = playerPos;
     }
     updateCam(engine, dt);
 
+    glm::vec3 rayOrigin = engine->camera.Position;
+    glm::vec3 rayDirection = glm::normalize(engine->camera.getForward());
+
+    glm::ivec3 blockHit, normalHit;
+    if (raycastVoxel(rayOrigin, rayDirection, 8.0f, blockHit, normalHit))
+    {
+        std::vector<glm::vec3> corners = {
+            {blockHit.x, blockHit.y, blockHit.z}, {blockHit.x + 1, blockHit.y, blockHit.z}, {blockHit.x + 1, blockHit.y + 1, blockHit.z}, {blockHit.x, blockHit.y + 1, blockHit.z}, {blockHit.x, blockHit.y, blockHit.z + 1}, {blockHit.x + 1, blockHit.y, blockHit.z + 1}, {blockHit.x + 1, blockHit.y + 1, blockHit.z + 1}, {blockHit.x, blockHit.y + 1, blockHit.z + 1}};
+
+        auto addLine = [&](glm::vec3 a, glm::vec3 b)
+        {
+            engine->linesDrawer->debugLines.push_back(Vertex{a, glm::vec3(0.2f)});
+            engine->linesDrawer->debugLines.push_back(Vertex{b, glm::vec3(0.2f)});
+        };
+
+        addLine(corners[0], corners[1]);
+        addLine(corners[1], corners[2]);
+        addLine(corners[2], corners[3]);
+        addLine(corners[3], corners[0]);
+
+        addLine(corners[4], corners[5]);
+        addLine(corners[5], corners[6]);
+        addLine(corners[6], corners[7]);
+        addLine(corners[7], corners[4]);
+
+        addLine(corners[0], corners[4]);
+        addLine(corners[1], corners[5]);
+        addLine(corners[2], corners[6]);
+        addLine(corners[3], corners[7]);
+
+        if (engine->input.mouseButtons[GLFW_MOUSE_BUTTON_LEFT])
+        {
+            world.setBlock(blockHit.x, blockHit.y, blockHit.z, BlockType::Air);
+        }
+    }
     glm::ivec3 playerChunk = world.worldToChunkCoords(engine->camera.Position.x, 0, engine->camera.Position.z);
 
     int renderDistance = 4;
@@ -313,42 +412,17 @@ int main()
 
         engine.createGameObject("player", glm::vec3(0, 255, 0), glm::vec3(0, 0, 0), glm::vec3(0.8f, 1.5f, 0.8f));
         engine.addMeshToObject("player", player, "textures/wood.png", cubeVertices, cubeIndices);
-        /*
-                        engine.createGameObject("cube 1", glm::vec3(0, 25, 0), glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
-                        engine.addMeshToObject("cube 1", ground, "textures/wood.png", cubeVertices, cubeIndices);
 
-                        engine.createGameObject("cube 2", glm::vec3(10, 30, 0), glm::vec3(45, 45, 45), glm::vec3(1, 1, 1));
-                        engine.addMeshToObject("cube 2", ground, "textures/wood.png", cubeVertices, cubeIndices);
+        engine.createUIObject("crosshair", glm::vec3(engine.WIDTH / 2, -500, -2), glm::vec3(0), glm::vec3(20, 20, 1));
+        engine.addMeshToObject("crosshair", player, "textures/crosshair.png", squareVertices, squareIndices);
 
-                        engine.createGameObject("couch", glm::vec3(30, 30, 0), glm::vec3(45, 45, 45), glm::vec3(0.1f, 0.1f, 0.1f));
-                        engine.loadModel("couch", "models/couch/couch1.obj", "models/couch/couch1.mtl");*/
+        engine.createUIObject("hotbar", glm::vec3(engine.WIDTH / 2, -900, -2), glm::vec3(0), glm::vec3(480 * 1.5f, 48 * 1.5f, 1));
+        engine.addMeshToObject("hotbar", player, "textures/hotbar.png", squareVertices, squareIndices);
 
-        /*world.loadChunk(glm::ivec3(0, 0, 0));
-        world.loadChunk(glm::ivec3(16, 0, 0));
-        world.loadChunk(glm::ivec3(0, 0, 16));
-        world.loadChunk(glm::ivec3(16, 0, 16));
-        world.loadChunk(glm::ivec3(32, 0, 0));
-        world.loadChunk(glm::ivec3(32, 0, 16));
-        world.loadChunk(glm::ivec3(16, 0, 32));
-        world.loadChunk(glm::ivec3(0, 0, 32));
-        world.loadChunk(glm::ivec3(32, 0, 32));
-        world.renderChunk(&engine, "chunk1", glm::ivec3(0, 0, 0));
-        world.renderChunk(&engine, "chunk2", glm::ivec3(16, 0, 0));
-        world.renderChunk(&engine, "chunk3", glm::ivec3(0, 0, 16));
-        world.renderChunk(&engine, "chunk4", glm::ivec3(16, 0, 16));
-        world.renderChunk(&engine, "chunk5", glm::ivec3(32, 0, 0));
-        world.renderChunk(&engine, "chunk6", glm::ivec3(32, 0, 16));
-        world.renderChunk(&engine, "chunk7", glm::ivec3(16, 0, 32));
-        world.renderChunk(&engine, "chunk8", glm::ivec3(0, 0, 32));
-        world.renderChunk(&engine, "chunk9", glm::ivec3(32, 0, 32));*/
         world.startWorker();
-        /*
+
         world.startWorker();
         world.startWorker();
-        world.startWorker();
-        world.startWorker();
-        world.startWorker();
-        world.startWorker();*/
         engine.run();
         engine.shutdown();
     }

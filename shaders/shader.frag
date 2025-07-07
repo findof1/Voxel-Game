@@ -73,8 +73,10 @@ void main() {
          if(material.hasTexture == 1) {
             vec4 texColor = texture(texSampler, finalUV);
             litColor *= texColor.rgb;
-        }
+            outColor = vec4(litColor, texColor.a);
+        }else{
         outColor = vec4(litColor, diffuseColor.a);
+        }
         }
 
 }

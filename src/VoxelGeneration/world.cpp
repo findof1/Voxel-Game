@@ -5,7 +5,49 @@
 
 World::World() : textureDataSource(0.1f, 0.1f)
 {
+  TextureData grassTexture;
+  grassTexture.up = glm::vec2(0, 2);
+  grassTexture.down = glm::vec2(1, 1);
+  grassTexture.side = glm::vec2(0, 1);
+  grassTexture.blockType = BlockType::Grass_Dirt;
 
+  TextureData dirtTexture;
+  dirtTexture.up = glm::vec2(1, 1);
+  dirtTexture.down = glm::vec2(1, 1);
+  dirtTexture.side = glm::vec2(1, 1);
+  dirtTexture.blockType = BlockType::Dirt;
+
+  TextureData waterTexture;
+  waterTexture.up = glm::vec2(4, 0);
+  waterTexture.down = glm::vec2(4, 0);
+  waterTexture.side = glm::vec2(4, 0);
+  waterTexture.blockType = BlockType::Water;
+
+  TextureData sandTexture;
+  sandTexture.up = glm::vec2(3, 0);
+  sandTexture.down = glm::vec2(3, 0);
+  sandTexture.side = glm::vec2(3, 0);
+  sandTexture.blockType = BlockType::Sand;
+
+  TextureData stoneTexture;
+  stoneTexture.up = glm::vec2(2, 0);
+  stoneTexture.down = glm::vec2(2, 0);
+  stoneTexture.side = glm::vec2(2, 0);
+  stoneTexture.blockType = BlockType::Stone;
+
+  TextureData treeTrunkTexture;
+  treeTrunkTexture.up = glm::vec2(6, 0);
+  treeTrunkTexture.down = glm::vec2(6, 0);
+  treeTrunkTexture.side = glm::vec2(5, 0);
+  treeTrunkTexture.blockType = BlockType::Tree_Trunk;
+
+  TextureData treeLeafesSolidTexture;
+  treeLeafesSolidTexture.up = glm::vec2(7, 0);
+  treeLeafesSolidTexture.down = glm::vec2(7, 0);
+  treeLeafesSolidTexture.side = glm::vec2(7, 0);
+  treeLeafesSolidTexture.blockType = BlockType::Tree_Leafes_Solid;
+
+  /*
   TextureData grassTexture;
   grassTexture.up = glm::vec2(8, 0);
   grassTexture.down = glm::vec2(7, 5);
@@ -47,31 +89,7 @@ World::World() : textureDataSource(0.1f, 0.1f)
   treeLeafesSolidTexture.down = glm::vec2(5, 1);
   treeLeafesSolidTexture.side = glm::vec2(5, 1);
   treeLeafesSolidTexture.blockType = BlockType::Tree_Leafes_Solid;
-  /*
-     TextureData birchTreeTrunkTexture;
-     birchTreeTrunkTexture.up = glm::vec2(0, 2);
-     birchTreeTrunkTexture.down = glm::vec2(0, 2);
-     birchTreeTrunkTexture.side = glm::vec2(0, 1);
-     birchTreeTrunkTexture.blockType = BlockType::BirchTreeTrunk;
-
-     TextureData birchTreeLeafesSolidTexture;
-     birchTreeLeafesSolidTexture.up = glm::vec2(5, 9);
-     birchTreeLeafesSolidTexture.down = glm::vec2(5, 9);
-     birchTreeLeafesSolidTexture.side = glm::vec2(5, 9);
-     birchTreeLeafesSolidTexture.blockType = BlockType::BirchTreeLeafesSolid;
-
-     TextureData treeLeafesSolidTexture;
-     treeLeafesSolidTexture.up = glm::vec2(5, 8);
-     treeLeafesSolidTexture.down = glm::vec2(5, 8);
-     treeLeafesSolidTexture.side = glm::vec2(5, 8);
-     treeLeafesSolidTexture.blockType = BlockType::TreeLeafesSolid;
-
-     TextureData grassStoneTexture;
-     grassStoneTexture.up = glm::vec2(8, 9);
-     grassStoneTexture.down = glm::vec2(3, 5);
-     grassStoneTexture.side = glm::vec2(2, 5);
-     grassStoneTexture.blockType = BlockType::Grass_Stone;
-     */
+  */
 
   textureDataSource.addTextureData(grassTexture, BlockType::Grass_Dirt);
   textureDataSource.addTextureData(dirtTexture, BlockType::Dirt);
@@ -80,10 +98,6 @@ World::World() : textureDataSource(0.1f, 0.1f)
   textureDataSource.addTextureData(stoneTexture, BlockType::Stone);
   textureDataSource.addTextureData(treeTrunkTexture, BlockType::Tree_Trunk);
   textureDataSource.addTextureData(treeLeafesSolidTexture, BlockType::Tree_Leafes_Solid);
-  /*
-  textureDataSource.textureDataList.push_back(birchTreeTrunkTexture);
-  textureDataSource.textureDataList.push_back(birchTreeLeafesSolidTexture);
-  textureDataSource.textureDataList.push_back(grassStoneTexture);*/
 
   biomes.emplace_back("Null", BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, BlockType::Nothing, -1, -1, -1, 0, 0, 0);
   biomes.emplace_back("Plains", BlockType::Grass_Dirt, BlockType::Sand, BlockType::Dirt, BlockType::Stone, 0.5f, 0.5f, 0.5f, 10, 0.4f, 1.2f);

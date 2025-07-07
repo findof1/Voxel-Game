@@ -42,12 +42,12 @@ bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
           {
             for (int vert = 0; vert < 4; ++vert)
             {
-              glm::vec3 vertexPos = glm::vec3(x, y, z) + faceVertices[face][vert];
+              glm::vec3 vertexPos = glm::vec3(x, y, z) + faceVertices[face][vert] + 0.5f;
               Vertex vertex;
               vertex.color = glm::vec3(0);
               vertex.normal = directions[face];
               vertex.pos = vertexPos;
-              vertex.tileSize = glm::vec2(textureData.textureSizeX, textureData.textureSizeY);
+              vertex.tileSize = glm::vec2(textureData.textureSizeX, textureData.textureSizeY); // - glm::vec2(0.03);
               vertex.repeatCount = glm::u8vec2(1, 1);
               glm::vec2 uv = glm::vec2(1, 1);
 
@@ -63,6 +63,7 @@ bool MeshGenerator::generateMesh(World *world, BlockDataSO &textureData, const s
               {
                 vertex.tileStart = glm::vec2(textureData.textureDataList.at(block).side.x * textureData.textureSizeX, textureData.textureDataList.at(block).side.y * textureData.textureSizeY);
               }
+              // vertex.tileStart += glm::vec2(0.008);
 
               if (face == 2 || face == 3 || face == 0 || face == 1)
               {
