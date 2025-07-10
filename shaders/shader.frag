@@ -34,9 +34,7 @@ void main() {
         if(fragNormal.x <0 && fragNormal.y <0 && fragNormal.z <0){
             if(material.hasTexture == 1) {
                 vec4 texColor = texture(texSampler, finalUV);
-                if(texColor.a < 0.1){
-                    discard;
-                }
+
                 outColor = texColor * diffuseColor;
             }else{
                 outColor = diffuseColor;

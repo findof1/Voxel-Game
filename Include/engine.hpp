@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "gameObject.hpp"
 #include "debugDrawer.hpp"
+#include "text.hpp"
 struct Input
 {
   bool keys[GLFW_KEY_LAST] = {false};
@@ -18,9 +19,11 @@ public:
   uint32_t WIDTH;
   uint32_t HEIGHT;
   Input input;
+  GLFWwindow *window;
 
   std::unordered_map<std::string, GameObject> gameObjects;
   std::unordered_map<std::string, GameObject> uiObjects;
+  std::unordered_map<std::string, Text> textObjects;
   VulkanDebugDrawer *linesDrawer = nullptr;
 
   Engine(uint32_t width = 1600, uint32_t height = 1000) : WIDTH(width), HEIGHT(height), camera(), renderer(camera, WIDTH, HEIGHT)
@@ -74,13 +77,18 @@ public:
   void loadModel(std::string identifier, const std::string objPath, const std::string mtlPath);
 
   void createUIObject(std::string identifier, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+  void removeUIObject(std::string identifier);
+
+  void createTextObject(std::string identifier, std::string text, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+  void updateTextObject(std::string identifier, std::string text);
+  void updateTextObject(std::string identifier, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+  void hideTextObject(std::string identifier, bool hide);
 
   void disableCursor();
   void enableCursor();
 
 private:
   Renderer renderer;
-  GLFWwindow *window;
   int nextRenderingId = 0;
   std::function<void(Engine *, float)> update;
   std::function<void(Engine *)> start;

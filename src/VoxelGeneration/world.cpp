@@ -105,41 +105,6 @@ World::World() : textureDataSource(0.1f, 0.1f)
   biomes.emplace_back("Desert", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.7f, 0.3f, 0.4f, 15, 0.4f, 1.75f);
   biomes.emplace_back("Ocean", BlockType::Sand, BlockType::Sand, BlockType::Sand, BlockType::Stone, 0.5f, 0.6f, 0.2f, 10, 0.4f, 1.2f);
   biomes.emplace_back("Mountain", BlockType::Stone, BlockType::Sand, BlockType::Stone, BlockType::Stone, 0.3f, 0.2f, 0.9f, 90, 0.7f, 2.0f);
-
-  int x, z;
-  x = z = -5000;
-  int bestX, bestZ;
-  bestX, bestZ = -100000;
-  int distSquared = 10000000;
-  while (true)
-  {
-    float temperature = (glm::perlin(glm::vec2(x + 120000, z + 150000) * 0.005f) + 1) / 2;
-    float humidity = (glm::perlin(glm::vec2(x + 8000, z + 12000) * 0.001f) + 1) / 2;
-    float elevation = (glm::perlin(glm::vec2(x + 10200, z + 18000) * 0.006f) + 1) / 2;
-
-    auto [distance, biome] = getBiome(temperature, humidity, elevation);
-    if (biome.name == "Forest")
-    {
-      int old = distSquared;
-      distSquared = std::min(distSquared, x * x + z * z);
-      if (distSquared != old)
-      {
-        bestX = x;
-        bestZ = z;
-      }
-    }
-    x += 16;
-    if (x > 5000)
-    {
-      x = -5000;
-      z += 16;
-    }
-    if (z > 5000)
-    {
-      break;
-    }
-  }
-  std::cout << bestX << "|" << bestZ << std::endl;
 }
 
 BlockType World::getBlock(int x, int y, int z) const

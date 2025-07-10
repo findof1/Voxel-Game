@@ -3,6 +3,7 @@
 #include "renderer.hpp"
 #include <glm/glm.hpp>
 #include "gameObject.hpp"
+#include "text.hpp"
 
 void setupViewportScissor(Renderer *renderer, VkCommandBuffer commandBuffer)
 {
@@ -157,6 +158,55 @@ RenderCommand makeGameObjectCommand(GameObject &gameObject, Renderer *renderer, 
         {
           mesh.draw(renderer, currentFrame, transformation, view, proj, cmdBuf);
         }
+      }};
+}
+
+RenderCommand makeUICommand(GameObject &gameObject, Renderer *renderer, int currentFrame, glm::mat4 view, glm::mat4 proj)
+{
+  return {
+      [renderer, &gameObject, currentFrame, view, proj](VkCommandBuffer cmdBuf)
+      {
+        vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->pipelineManager.graphicsPipeline);
+        setTriangleTopology(renderer, cmdBuf);
+        disableDepthWrite(renderer, cmdBuf);
+
+        setupViewportScissor(renderer, cmdBuf);
+        VkViewport viewport{};
+
+        glm::mat4 transformation = glm::mat4(1.0f);
+        transformation = glm::translate(transformation, gameObject.position);
+        transformation = glm::rotate(transformation, glm::radians(gameObject.rotationZYX.x), glm::vec3(0.0f, 0.0f, 1.0f));
+        transformation = glm::rotate(transformation, glm::radians(gameObject.rotationZYX.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        transformation = glm::rotate(transformation, glm::radians(gameObject.rotationZYX.z), glm::vec3(1.0f, 0.0f, 0.0f));
+        transformation = glm::scale(transformation, gameObject.scale);
+
+        for (auto &mesh : gameObject.meshes)
+        {
+          mesh.draw(renderer, currentFrame, transformation, view, proj, cmdBuf);
+        }
+      }};
+}
+
+RenderCommand makeTextCommand(Text &text, Renderer *renderer, int currentFrame, glm::mat4 view, glm::mat4 proj)
+{
+  return {
+      [renderer, &text, currentFrame, view, proj](VkCommandBuffer cmdBuf)
+      {
+        vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->pipelineManager.graphicsPipeline);
+        setTriangleTopology(renderer, cmdBuf);
+        disableDepthWrite(renderer, cmdBuf);
+
+        setupViewportScissor(renderer, cmdBuf);
+        VkViewport viewport{};
+
+        glm::mat4 transformation = glm::mat4(1.0f);
+        transformation = glm::translate(transformation, text.position);
+        transformation = glm::rotate(transformation, glm::radians(text.rotation.x), glm::vec3(0.0f, 0.0f, 1.0f));
+        transformation = glm::rotate(transformation, glm::radians(text.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        transformation = glm::rotate(transformation, glm::radians(text.rotation.z), glm::vec3(1.0f, 0.0f, 0.0f));
+        transformation = glm::scale(transformation, text.scale);
+
+        text.draw(renderer, currentFrame, transformation, view, proj, cmdBuf);
       }};
 }
 

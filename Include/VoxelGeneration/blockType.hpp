@@ -1,6 +1,6 @@
 #ifndef BLOCK_TYPE_H
 #define BLOCK_TYPE_H
-enum BlockType
+enum class BlockType
 {
   Nothing,
   Air,

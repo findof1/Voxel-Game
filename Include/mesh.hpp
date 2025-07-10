@@ -33,6 +33,7 @@ public:
   std::shared_ptr<TextureManager> textureManager;
 
   Mesh(Renderer &renderer, int *nextRenderingId, MaterialData material, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
+
   Mesh(std::shared_ptr<TextureManager> textureManager, int *nextRenderingId, MaterialData newMaterial, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
 
   void initGraphics(Renderer &renderer, std::string texturePath);
