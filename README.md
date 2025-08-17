@@ -8,8 +8,8 @@ It provides the foundations for a voxel or mesh-based world, featuring an ECS-st
 ## ✨ Features
 • Vulkan 1.3 renderer using GLFW for window & input.  
 • Free-fly first-person camera and gameplay camera with collision.  
-• Voxel world with chunk streaming (16×16×256), biomes, and trees.  
-• Multithreaded chunk generation and mesh building.  
+• Voxel world with chunk streaming (16×16×256), biomes (Plains/Forest/Desert/Ocean/Mountain), trees, and water.  
+• Multithreaded chunk generation and mesh building with greedy meshing optimization.  
 • Inventory and hotbar UI with item stacking and counts (FreeType text).  
 • Block interaction: raycast to break/place blocks (LMB/RMB).  
 • OBJ + MTL loading via **tinyobjloader** (for mesh-based objects).  
@@ -110,7 +110,19 @@ Required textures for the demo UI/atlas (these should be present in `textures/`)
 - `hotbar.png` (hotbar UI)
 - `crosshair.png` (crosshair UI)
 - `itemAtlas.png` (icons for inventory slots)
-- `newAtlas.png` (voxel texture atlas used for world meshes)
+- `tiles.png` and/or `newAtlas.png` (voxel atlases used by chunk meshes)
+
+Water is non-solid for raycasts (you cannot target it), and faces adjacent to water are meshed appropriately.
+
+---
+
+## 🌍 World generation
+- **Chunks**: `16×16×256` blocks (`Include/VoxelGeneration/chunkData.hpp`).
+- **Biomes**: Plains, Forest, Desert, Ocean, Mountain. Selected by distance in a temperature/humidity/elevation space with secondary-biome blending.
+- **Heightfield**: Perlin-based multi-octave noise blended by biome parameters (`persistance`, `lacunarity`, `heightDiff`).
+- **Surface rules**: Surface/filler/underground blocks vary by biome; sand used under shallow water; water level ≈ 60.
+- **Vegetation**: Forests can spawn trees.
+- **Meshing**: Greedy meshing reduces quads dramatically; faces against air/water are emitted; texture coordinates sourced from a tile atlas.
 
 ---
 
@@ -168,6 +180,10 @@ Voxel world meshing uses a texture atlas; see `Include/VoxelGeneration/` for `Wo
 - **Chunk size**: `ChunkData::chunkSize = 16`, `ChunkData::chunkHeight = 256` (see `Include/VoxelGeneration/chunkData.hpp`).
 - **Multithreading**: `World::startWorker()` is called multiple times to create worker threads for chunk generation.
 - **Fonts**: the UI uses FreeType with `arial.ttf`. Adjust the path in `Renderer` if needed.
+- **Upload throttling**: `maxUploadsPerFrame` in `src/application.cpp` (default 1) limits GPU uploads per frame to prevent stutter.
+- **Workers**: increase/decrease `world.startWorker()` calls in `Application::run()` to scale generation throughput.
+- **Water level**: tweak `waterLevel` in `src/VoxelGeneration/world.cpp` (default 60).
+- **Atlases**: chunks may use `textures/tiles.png` or a `voxelTextureAtlas` from `textures/newAtlas.png` depending on the path used when building meshes.
 
 ---
 
