@@ -7,19 +7,23 @@ It provides the foundations for a voxel or mesh-based world, featuring an ECS-st
 
 ## ✨ Features
 • Vulkan 1.3 renderer using GLFW for window & input.  
-• Physically-inspired material system with push-constants.  
-• Free-fly first-person camera (WASD + mouse).  
-• OBJ + MTL loading via **tinyobjloader**.  
-• Image loading through **stb_image**.  
-• Text rendering with **FreeType2**.  
-• Hot-swappable render commands queue.  
-• Simple scene system for creating game objects, adding meshes, and importing external models.
+• Free-fly first-person camera and gameplay camera with collision.  
+• Voxel world with chunk streaming (16×16×256), biomes, and trees.  
+• Multithreaded chunk generation and mesh building.  
+• Inventory and hotbar UI with item stacking and counts (FreeType text).  
+• Block interaction: raycast to break/place blocks (LMB/RMB).  
+• OBJ + MTL loading via **tinyobjloader** (for mesh-based objects).  
+• Image loading via **stb_image**; text rendering via **FreeType2**.  
+• Skybox, crosshair, hotbar, and item atlas textures.  
+• Command-queue based renderer and simple scene system for meshes/UI/text.
 
 ---
 
 ## 📁 Repository layout
 ```text
 📂 Include/      → public C++ headers (engine, renderer, components …)
+📂 Include/VoxelGeneration/ → voxel world, chunks, generators, queues
+📄 Include/application.hpp → high-level gameplay loop (voxel demo)
 📂 src/          → implementation (.cpp) files
 📂 shaders/      → GLSL shaders & `compile.bat` helper script
 📂 models/       → sample OBJ assets used by the demo scene
@@ -93,36 +97,77 @@ After a successful build just launch the executable:
 ```bash
 ./build/main.exe   # or ./build/Voxel-Game on UNIX
 ```
-A window titled "Game Engine" will open and render a simple scene containing:
-• A textured skybox.  
-• A large ground plane.  
-• Two wooden cubes.  
-• A scaled OBJ couch model.
+A window titled "Game Engine" opens into a procedurally generated voxel world:
+• Streaming chunks around the player with a configurable render distance.  
+• A textured skybox that follows the player.  
+• A visible player capsule (for debugging) and a crosshair.  
+• A hotbar displaying collected items with stack counts.
+
+If fonts fail to load for the UI counters, ensure `C:/Windows/Fonts/arial.ttf` exists (or update the path in `Renderer` constructor).
+
+Required textures for the demo UI/atlas (these should be present in `textures/`):
+- `sky.png` (skybox)
+- `hotbar.png` (hotbar UI)
+- `crosshair.png` (crosshair UI)
+- `itemAtlas.png` (icons for inventory slots)
+- `newAtlas.png` (voxel texture atlas used for world meshes)
 
 ---
 
 ## 🎮 Default controls
-| Action                    | Key / Mouse                 |
-|---------------------------|-----------------------------|
-| Move forward / backward   | **W** / **S**              |
-| Strafe right / left       | **D** / **A**              |
-| Ascend / descend          | **Space** / **Left Ctrl**  |
-| Speed boost               | **Left Shift**             |
-| Look around               | **Hold Right Mouse Button**|
-| Zoom                      | **Mouse Wheel**            |
-| Toggle cursor lock        | Release Right Mouse Button |
+| Action                         | Key / Mouse                  |
+|--------------------------------|------------------------------|
+| Move forward/backward          | **W** / **S**                |
+| Strafe right/left              | **D** / **A**                |
+| Jump                           | **Space**                    |
+| Sprint                         | **Left Shift**               |
+| Look around                    | Move mouse (cursor locked)   |
+| Zoom (change FOV)              | **Mouse Wheel**              |
+| Break block (targeted)         | **Left Mouse Button**        |
+| Place block (selected hotbar)  | **Right Mouse Button**       |
+| Select hotbar slot             | **1-9**, **0** (slot 10)     |
+| Quit                           | **Esc**                      |
 
 ---
 
 ## ➕ Extending the engine
-Creating a new object from user code (see `src/main.cpp`):
+Two layers are provided:
+
+- High-level gameplay loop (`Application`) used by the voxel demo:
+```cpp
+#include <application.hpp>
+
+int main() {
+  Application app;
+  app.run();
+}
+```
+
+- Low-level engine API (`Engine`) for manual scene setup/UI/text:
 ```cpp
 Engine engine;
 engine.init("My Game", startFn, updateFn);
 engine.createGameObject("cube", {0,0,0}, {0,0,0}, {1,1,1});
 engine.addMeshToObject("cube", material, "textures/wood.png", cubeVertices, cubeIndices);
+
+// UI and text
+engine.createUIObject("crosshair", {engine.WIDTH/2,-500,-7}, {0,0,0}, {20,20,1});
+engine.addMeshToObject("crosshair", material, "textures/crosshair.png", squareVertices, squareIndices);
+engine.createTextObject("stack0", "64", {10,-10,-6}, {0,0,0}, {0.6f,0.6f,1});
+
+// Import OBJ/MTL meshes
+engine.loadModel("couch", "models/couch/couch1.obj", "models/couch/");
 ```
-You can also import any **OBJ/MTL** pair with `Engine::loadModel()` – textures referenced in the MTL file will be loaded automatically.
+
+Voxel world meshing uses a texture atlas; see `Include/VoxelGeneration/` for `World`, `ChunkData`, and `MeshGenerator`.
+
+---
+
+## ⚙️ Tuning & notes
+- **Render distance**: change `renderDistance` in `src/application.cpp` (default 4) to trade view distance vs. performance.
+- **Chunk size**: `ChunkData::chunkSize = 16`, `ChunkData::chunkHeight = 256` (see `Include/VoxelGeneration/chunkData.hpp`).
+- **Multithreading**: `World::startWorker()` is called multiple times to create worker threads for chunk generation.
+- **Fonts**: the UI uses FreeType with `arial.ttf`. Adjust the path in `Renderer` if needed.
 
 ---
 
@@ -134,7 +179,4 @@ This project is released under the MIT License – see `LICENSE` for details.  M
 ## 🙏 Acknowledgements
 • **Khronos Group** for Vulkan & glslang.  
 • **glfw** team for the window/input library.  
-• **glm**, **stb_image**, **tinyobjloader**, **Freetype** for awesome single-header libraries. 
-
-
-TOTALLY NOT GENERATED WITH AI.
+• **glm**, **stb_image**, **tinyobjloader**, **Freetype** for awesome single-header libraries.
