@@ -211,9 +211,23 @@ void Application::update(Engine *engine, float dt)
       if (!rightMouseClick && inventory.items[inventory.selectedSlot].item != Item::None && inventory.items[inventory.selectedSlot].currentStackSize > 0)
       {
         rightMouseClick = true;
-        inventory.items[inventory.selectedSlot].currentStackSize -= 1;
         glm::vec3 placeSpot = blockHit + normalHit;
-        world.setBlock(placeSpot.x, placeSpot.y, placeSpot.z, itemToBlock(inventory.items[inventory.selectedSlot].item));
+
+        glm::vec3 blockMax = placeSpot + glm::vec3(1.0f);
+
+        glm::vec3 min = playerPos - glm::vec3(0.4f, 0.9f, 0.4f);
+        glm::vec3 max = playerPos + glm::vec3(0.4f, 0.9f, 0.4f);
+
+        if (!AABBIntersect(min, max, placeSpot, blockMax))
+        {
+          inventory.items[inventory.selectedSlot].currentStackSize -= 1;
+          if (inventory.items[inventory.selectedSlot].currentStackSize <= 0)
+          {
+            inventory.items[inventory.selectedSlot].makeTexture = true;
+          }
+
+          world.setBlock(placeSpot.x, placeSpot.y, placeSpot.z, itemToBlock(inventory.items[inventory.selectedSlot].item));
+        }
       }
     }
     else
@@ -302,8 +316,15 @@ void Application::drawInventory()
 {
   for (int i = 0; i < inventory.items.size(); i++)
   {
-    if (inventory.items[i].item != Item::None && inventory.items[i].currentStackSize > 0)
+    if (inventory.items[i].item != Item::None)
     {
+      if (inventory.items[i].currentStackSize <= 0 && inventory.items[i].makeTexture)
+      {
+        engine.removeUIObject("item" + std::to_string(i));
+        inventory.items[i].makeTexture = false;
+        inventory.items[i].item = Item::None;
+      }
+
       if (inventory.items[i].makeTexture)
       {
         MaterialData item;
@@ -314,10 +335,15 @@ void Application::drawInventory()
         engine.addMeshToObject("item" + std::to_string(i), item, "textures/itemAtlas.png", getItemUIVertices(inventory.items[i].item), squareIndices);
         inventory.items[i].makeTexture = false;
       }
+
       if (inventory.items[i].currentStackSize > 1)
       {
         std::string stackSize = std::to_string(inventory.items[i].currentStackSize);
         engine.updateTextObject(std::to_string(i), stackSize);
+      }
+      else
+      {
+        engine.updateTextObject(std::to_string(i), " ");
       }
     }
   }
